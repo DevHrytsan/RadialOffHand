@@ -19,7 +19,7 @@ Currently supported platforms and versions:
 - Fabric, Neoforge 1.21.11
 
 ### Download Links
-You can download Radial Hot Bar from the following platforms:
+You can download mod from the following platforms:
 - [Modrinth](https://modrinth.com/mod/radial-offhand)
 - [Curseforge](https://www.curseforge.com/minecraft/mc-mods/radial-offhand)
 
