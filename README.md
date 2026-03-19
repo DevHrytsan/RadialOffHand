@@ -21,7 +21,7 @@ Currently supported platforms and versions:
 ### Download Links
 You can download mod from the following platforms:
 - [Modrinth](https://modrinth.com/mod/radial-offhand)
-- [Curseforge](https://www.curseforge.com/minecraft/mc-mods/radial-offhand)
+- [Curseforge](https://www.curseforge.com/minecraft/mc-mods/radialoffhand)
 
 > [!WARNING]
 > Downloading the mod from any other website or third-party source may put you at risk of malware.<br/>
