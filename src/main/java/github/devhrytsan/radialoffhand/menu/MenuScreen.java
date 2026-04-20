@@ -46,7 +46,7 @@ public class MenuScreen extends Screen {
 	protected static final float MIN_RADIUS_IGNORE_MOUSE_FACTOR = 0.2f;
 	protected static final float MAX_RADIUS_IGNORE_MOUSE_FACTOR = 6f;
 
-	protected static final int MAX_SLOTS_COUNT = 35;
+	protected static final int MAX_SLOTS_COUNT = 36;
 	protected static final int MIN_SLOTS_COUNT_FOR_SPACING = 14;
 	protected static final int MAX_SLOTS_COUNT_FOR_SPACING = 25;
 
