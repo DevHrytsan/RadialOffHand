@@ -19,9 +19,8 @@ import org.slf4j.LoggerFactory;
 
 //? fabric {
 import github.devhrytsan.radialoffhand.platform.fabric.FabricPlatform;
-
+import github.devhrytsan.radialoffhand.compatibility.FabricKeyHelperBridge;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 
 //?} neoforge {
 /*import github.devhrytsan.radialoffhand.platform.neoforge.NeoforgePlatform;
@@ -85,7 +84,7 @@ public class RadialOffHandMod {
 				KEYBIND_CATEGORY
 		);
 
-		KeyBindingHelper.registerKeyBinding(OPEN_RADIAL_OFFHAND_MENU_KEY);
+		FabricKeyHelperBridge.register(OPEN_RADIAL_OFFHAND_MENU_KEY);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			MenuController.INSTANCE.HandleUpdate(client);

@@ -2,27 +2,26 @@ package github.devhrytsan.radialoffhand.utils;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Window;
+
 import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
 
 //? fabric {
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import github.devhrytsan.radialoffhand.compatibility.FabricKeyHelperBridge;
 //?}
 
 public class KeyInputUtils {
 
 	public static InputConstants.Key GetBoundKey(KeyMapping keyBinding) {
 		//? fabric {
-		return KeyBindingHelper.getBoundKeyOf(keyBinding);
+		return FabricKeyHelperBridge.getBoundKeyOf(keyBinding);
 		//?} neoforge {
-
 		/*return keyBinding.getKey(); // it may be wrong
-
-		*///?} forge {
+		 *///?} forge {
 
 		/*return keyBinding.getKey();
 
-		*///?}
+		 *///?}
 
 	}
 

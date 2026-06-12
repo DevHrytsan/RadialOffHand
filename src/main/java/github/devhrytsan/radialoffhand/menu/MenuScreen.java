@@ -1,10 +1,11 @@
 package github.devhrytsan.radialoffhand.menu;
 
+import github.devhrytsan.radialoffhand.compatibility.GuiGraphicsLayer;
 import github.devhrytsan.radialoffhand.config.FileConfigHandler;
 import github.devhrytsan.radialoffhand.utils.ClientPlayerUtils;
-import github.devhrytsan.radialoffhand.utils.GuiGraphicsUtils;
 import github.devhrytsan.radialoffhand.utils.KeyInputUtils;
 import github.devhrytsan.radialoffhand.utils.MathUtils;
+import github.devhrytsan.radialoffhand.utils.MenuUtils;
 
 //? if >=1.20.5 {
 //? }
@@ -16,9 +17,13 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 *///? }
 
-import github.devhrytsan.radialoffhand.utils.MenuUtils;
-import net.minecraft.client.Minecraft;
+//? if >= 26.1 {
+/*import net.minecraft.client.gui.GuiGraphicsExtractor;
+ *///? } else {
 import net.minecraft.client.gui.GuiGraphics;
+//? }
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -60,15 +65,16 @@ public class MenuScreen extends Screen {
 	private boolean wasLeftMousePressed = false;
 
 	private final Minecraft client = Minecraft.getInstance();
-
-
 	public static final MenuScreen INSTANCE = new MenuScreen();
+
+	private GuiGraphicsLayer guiContextLayer;
 
 	public boolean active = false;
 
 	public MenuScreen() {
 		super(Component.translatable("main.radialoffhand.title"));
 		slotsToDraw = new ArrayList<>(MAX_SLOTS_COUNT);
+		guiContextLayer = new GuiGraphicsLayer();
 	}
 
 	@Override
@@ -85,16 +91,31 @@ public class MenuScreen extends Screen {
 	 }
 	}
 
+	//? if >= 26.1 {
+	/*@Override
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(context, mouseX, mouseY, delta);
+
+		guiContextLayer.setContext(context);
+		handleRender(guiContextLayer, mouseX, mouseY, delta);
+	}
+	*///? } else {
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
+
+		guiContextLayer.setContext(context);
+		handleRender(guiContextLayer, mouseX, mouseY, delta);
+	}
+	//? }
+
+	private void handleRender(GuiGraphicsLayer context, int mouseX, int mouseY, float delta){
 
 		//boolean isEnabled = FileConfigHandler.CONFIG_INSTANCE.modEnabled;
 		boolean hasScreen = client.screen != null;
 		boolean isPaused = !client.isPaused();
 
 		if (hasScreen && isPaused) {
-			super.render(context, mouseX, mouseY, delta);
 
 			prepareSlots(context, mouseX, mouseY, delta);
 			renderBackgrounds(context, mouseX, mouseY, delta);
@@ -187,7 +208,7 @@ public class MenuScreen extends Screen {
 		}
 	}
 
-	private void prepareSlots(GuiGraphics context, int mouseX, int mouseY, float delta) {
+	private void prepareSlots(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
 		Player player = this.client.player;
 		Inventory inventory = player.getInventory();
 
@@ -218,20 +239,19 @@ public class MenuScreen extends Screen {
 		totalItemsToDraw = slotsToDraw.size();
 	}
 
-	private void renderBackgrounds(GuiGraphics context, int mouseX, int mouseY, float delta) {
+	private void renderBackgrounds(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
 		//? if <1.21.1 {
-
 
 			/*int color = 0x80000000;
 
-			GuiGraphicsUtils.pushMatrix(context);
+			context.pushMatrix();
 	        context.fill(0, 0, width, height, color);
-			GuiGraphicsUtils.popMatrix(context);
+	        context.popMatrix();
 
 		*///? }
 	}
 
-	private void renderItems(GuiGraphics context, int mouseX, int mouseY, float delta) {
+	private void renderItems(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
 		var clientWindow = client.getWindow();
 		Player player = this.client.player;
 		Inventory inventory = player.getInventory();
@@ -319,15 +339,17 @@ public class MenuScreen extends Screen {
 
 			float scale = isSelected ? BASE_ITEM_SCALE_FACTOR * SELECTED_ITEM_SCALE_FACTOR : BASE_ITEM_SCALE_FACTOR * NOT_SELECTED_ITEM_SCALE_FACTOR;
 
-			GuiGraphicsUtils.pushMatrix(context);
-			GuiGraphicsUtils.translateMatrix(context, renderX + 8, renderY + 8, 0);
-			GuiGraphicsUtils.scaleMatrix(context, scale, scale, 1);
-			GuiGraphicsUtils.translateMatrix(context, -8, -8, 0);
+			context.pushMatrix();
 
-			GuiGraphicsUtils.renderItem(context, stack, 0, 0);
-			GuiGraphicsUtils.renderItemDecoration(context, textRenderer, stack, 0, 0);
+			context.translate(renderX + 8, renderY + 8, 0);
+			context.scaleMatrix(scale, scale, 1);
+			context.translate(-8, -8, 0);
 
-			GuiGraphicsUtils.popMatrix(context);
+			context.renderItem(stack, 0, 0);
+			context.renderItemDecoration(textRenderer, stack, 0, 0);
+
+			context.popMatrix();
+
 		}
 
 		if (FileConfigHandler.CONFIG_INSTANCE.useCenterItemPreview && !selectedStack.isEmpty()) {
@@ -335,7 +357,7 @@ public class MenuScreen extends Screen {
 		}
 	}
 
-	private void renderCenterItem(GuiGraphics context, ItemStack itemStack) {
+	private void renderCenterItem(GuiGraphicsLayer context, ItemStack itemStack) {
 		if (itemStack.isEmpty()) return;
 
 		boolean showDescription = FileConfigHandler.CONFIG_INSTANCE.useCenterPreviewDescription;
@@ -374,15 +396,15 @@ public class MenuScreen extends Screen {
 		// Render the item
 		float itemCenterY = startY + halfItemSize;
 
-		GuiGraphicsUtils.pushMatrix(context);
-		GuiGraphicsUtils.translateMatrix(context, centerX, itemCenterY, 0);
-		GuiGraphicsUtils.scaleMatrix(context, centerScale, centerScale, 1);
-		GuiGraphicsUtils.translateMatrix(context, -8, -8, 0);
+		context.pushMatrix();
+		context.translate(centerX, itemCenterY,0);
+		context.scaleMatrix(centerScale,centerScale,1);
+		context.translate(-8,-8,0);
 
-		GuiGraphicsUtils.renderItem(context, itemStack, 0, 0);
-		GuiGraphicsUtils.renderItemDecoration(context, textRenderer, itemStack, 0, 0);
+		context.renderItem(itemStack, 0, 0);
+		context.renderItemDecoration(textRenderer, itemStack, 0, 0);
 
-		GuiGraphicsUtils.popMatrix(context);
+		context.popMatrix();
 
 		// Render name
 		String itemName = itemStack.getHoverName().getString();
@@ -391,7 +413,7 @@ public class MenuScreen extends Screen {
 		// Cast to int  so the text rendering stays pixel perfect
 		int nameY = (int) (itemCenterY + halfItemSize + 5);
 
-		GuiGraphicsUtils.drawString(context, textRenderer, itemName, centerX - (textWidth / 2), nameY, 0xFFFFFFFF, true);
+		context.drawString(textRenderer, itemName, centerX - (textWidth / 2), nameY, 0xFFFFFFFF, true);
 
 		// Render Description
 		if (showDescription && descriptionLines > 0) {
@@ -401,7 +423,7 @@ public class MenuScreen extends Screen {
 				Component line = tooltip.get(i);
 				int lineWidth = textRenderer.width(line);
 
-				GuiGraphicsUtils.drawString(context, textRenderer, line, centerX - (lineWidth / 2), currentDescriptionY, 0xFFFFFFFF, true);
+				context.drawString(textRenderer, line, centerX - (lineWidth / 2), currentDescriptionY, 0xFFFFFFFF, true);
 
 				currentDescriptionY += fontHeight + 2;
 			}
