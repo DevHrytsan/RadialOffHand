@@ -9,6 +9,8 @@ public class RadialOffHandConfig {
     public boolean useCenterItemPreview = true; // Shows on center of radial menu a item.
 	public boolean useCenterPreviewDescription = true; // Shows the selected item's description.
 	public boolean allowMovementWhileOpen = true; // Allows the player to move while the radial menu is open.
-	public boolean usePrioritySort = true;
-
+	public boolean usePrioritySort = true; // Sorts items by category: Totem, Defense, Mobility(Fireworks), Torches, Food, Blocks.
+	public boolean excludeHotbar = false; // Excludes hotbar slots
+	public boolean onlyShowConsumables = false; // Show only consumables
+	public boolean showConsumablesFromHotbar = true; // Include consumables from the hotbar even if it's excluded
 }

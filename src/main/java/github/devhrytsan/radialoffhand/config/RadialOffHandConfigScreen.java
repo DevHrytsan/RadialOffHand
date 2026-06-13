@@ -73,6 +73,24 @@ public class RadialOffHandConfigScreen {
 				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.usePrioritySort = newValue)
 				.build();
 
+		var excludeHotbarToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.excludeHotbar"), FileConfigHandler.CONFIG_INSTANCE.excludeHotbar)
+				.setDefaultValue(false)
+				.setTooltip(Component.translatable("config.radialoffhand.option.excludeHotbar.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.excludeHotbar = newValue)
+				.build();
+		var onlyShowConsumablesToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.onlyShowConsumables"), FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables)
+				.setDefaultValue(false)
+				.setTooltip(Component.translatable("config.radialoffhand.option.onlyShowConsumables.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables = newValue)
+				.build();
+
+		 var showConsumablesFromHotbarToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.showConsumablesFromHotbar"), FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar)
+				.setDefaultValue(true)
+				.setTooltip(Component.translatable("config.radialoffhand.option.showConsumablesFromHotbar.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar = newValue)
+				 .setRequirement(() -> onlyShowConsumablesToggle.getValue() == true && excludeHotbarToggle.getValue() == true)
+				 .build();
+
 		general.addEntry(modEnableToggle);
 		general.addEntry(scaleFactorSlider);
 		general.addEntry(toggleBooleanToggle);
@@ -81,6 +99,9 @@ public class RadialOffHandConfigScreen {
 		general.addEntry(useCenterPreviewDescriptionToggle);
 		general.addEntry(allowMovementToggle);
 		general.addEntry(prioritySortToggle);
+		general.addEntry(excludeHotbarToggle);
+		general.addEntry(onlyShowConsumablesToggle);
+		general.addEntry(showConsumablesFromHotbarToggle);
 
         return builder.build();
     }

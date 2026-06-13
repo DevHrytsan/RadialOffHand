@@ -21,5 +21,12 @@
   "config.radialoffhand.option.allowMovementWhileOpen": "Разрешить движение",
   "config.radialoffhand.option.allowMovementWhileOpen.tooltip": "Позволяет игроку двигаться, пока открыто радиальное меню.",
   "config.radialoffhand.option.usePrioritySort": "Приоритетная сортировка",
-  "config.radialoffhand.option.usePrioritySort.tooltip": "Сортирует предметы по категориям: Тотем, Защита, Мобильность (Фейерверки), Факелы, Еда, Блоки."
+  "config.radialoffhand.option.usePrioritySort.tooltip": "Сортирует предметы по категориям: Тотем, Защита, Мобильность (Фейерверки), Факелы, Еда, Блоки.",
+  "config.radialoffhand.option.excludeHotbar": "Исключить предметы хотбара",
+  "config.radialoffhand.option.excludeHotbar.tooltip": "Не показывать слоты хотбара в радиальном меню.",
+  "config.radialoffhand.option.onlyShowConsumables": "Только расходуемые предметы",
+  "config.radialoffhand.option.onlyShowConsumables.tooltip": "Показывать в радиальном меню только расходуемые предметы.",
+  "config.radialoffhand.option.showConsumablesFromHotbar": "Всегда учитывать расходуемые предметы с хотбара",
+  "config.radialoffhand.option.showConsumablesFromHotbar.tooltip": "Расходуемые предметы с хотбара останутся доступными в радиальном меню, даже если хотбар исключён опцией."
 }
+

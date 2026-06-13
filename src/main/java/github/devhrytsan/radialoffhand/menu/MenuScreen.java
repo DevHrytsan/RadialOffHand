@@ -215,9 +215,33 @@ public class MenuScreen extends Screen {
 		slotsToDraw.clear();
 
 		for (int i = 0; i < MAX_SLOTS_COUNT; i++) {
-			if (!FileConfigHandler.CONFIG_INSTANCE.hideEmptySlots || !inventory.getItem(i).isEmpty()) {
-				slotsToDraw.add(i);
+
+			boolean isHotbarSlot = Inventory.isHotbarSlot(i);
+
+			ItemStack stack = inventory.getItem(i);
+
+			if (FileConfigHandler.CONFIG_INSTANCE.hideEmptySlots && stack.isEmpty()) {
+				continue;
 			}
+
+			if (isHotbarSlot) {
+				boolean isConsumable = !stack.isEmpty() && MenuUtils.isConsumable(stack);
+
+				if (FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar && isConsumable) {
+					// Keep forward
+				}
+				else if (FileConfigHandler.CONFIG_INSTANCE.excludeHotbar || FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables) {
+					continue; // Otherwise, if excludeHotbar is on, or if then filtering only show consumables
+				}
+			}
+
+			if (FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables && !stack.isEmpty()) {
+				if (!MenuUtils.isConsumable(stack)) {
+					continue;
+				}
+			}
+
+			slotsToDraw.add(i);
 		}
 
 		if (FileConfigHandler.CONFIG_INSTANCE.usePrioritySort) {

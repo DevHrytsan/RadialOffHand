@@ -77,6 +77,34 @@ public class MenuUtils {
 		return 6;
 	}
 
+	public static boolean isConsumable(ItemStack stack) {
+
+		Item item = stack.getItem();
+
+		//? if >=1.20.5 {
+		boolean isFood = stack.has(DataComponents.FOOD);
+		//? } else {
+		/*
+		boolean isFood = item.isEdible();
+        */
+		//? }
+
+		boolean isDrinkable = stack.is(Items.POTION)
+				|| stack.is(Items.MILK_BUCKET)
+				|| stack.is(Items.HONEY_BOTTLE);
+
+		boolean isBucket = item instanceof BucketItem;
+
+		boolean isTotem = stack.is(Items.TOTEM_OF_UNDYING);
+
+		boolean isShield = stack.is(Items.SHIELD);
+		//boolean isShield = item instanceof ShieldItem;
+
+		boolean isFirework = item instanceof FireworkRocketItem;
+
+		return isFood || isDrinkable || isBucket || isTotem || isShield || isFirework;
+	}
+
 	public static boolean canBeEquipped(ItemStack stack) {
 		if (stack.isEmpty()) return false;
 
