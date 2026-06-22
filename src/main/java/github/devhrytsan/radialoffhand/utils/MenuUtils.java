@@ -93,16 +93,44 @@ public class MenuUtils {
 				|| stack.is(Items.MILK_BUCKET)
 				|| stack.is(Items.HONEY_BOTTLE);
 
+
+		//? if >=1.20.3 {
+		boolean isThrowable = item instanceof SnowballItem
+				|| item instanceof EggItem
+				|| item instanceof WindChargeItem
+				|| item instanceof FireworkRocketItem
+				|| stack.is(Items.ENDER_PEARL);
+		//? } else {
+
+		/*
+			boolean isThrowable = item instanceof SnowballItem
+				|| item instanceof EggItem
+				|| item instanceof FireworkRocketItem
+				|| stack.is(Items.ENDER_PEARL);
+		*///? }
+
+		boolean isCombatUtility = item instanceof ShieldItem
+				|| item instanceof BowItem
+				|| item instanceof CrossbowItem
+				|| item instanceof TridentItem
+				|| stack.is(Items.TOTEM_OF_UNDYING);
+
+		boolean isUtilityTool = item instanceof FishingRodItem
+				|| item instanceof LeadItem
+				|| item instanceof FlintAndSteelItem
+				|| item instanceof MapItem
+				|| item instanceof SpyglassItem
+				|| item instanceof CompassItem
+				|| stack.is(Items.CLOCK);
+
+		boolean isLightSource = stack.is(Items.TORCH)
+				|| stack.is(Items.LANTERN)
+				|| stack.is(Items.SOUL_LANTERN);
+
 		boolean isBucket = item instanceof BucketItem;
 
-		boolean isTotem = stack.is(Items.TOTEM_OF_UNDYING);
-
-		boolean isShield = stack.is(Items.SHIELD);
-		//boolean isShield = item instanceof ShieldItem;
-
-		boolean isFirework = item instanceof FireworkRocketItem;
-
-		return isFood || isDrinkable || isBucket || isTotem || isShield || isFirework;
+		return isFood || isDrinkable || isThrowable || isCombatUtility
+				|| isUtilityTool || isLightSource || isBucket;
 	}
 
 	public static boolean canBeEquipped(ItemStack stack) {
