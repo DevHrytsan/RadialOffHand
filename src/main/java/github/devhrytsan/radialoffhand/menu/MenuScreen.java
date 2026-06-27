@@ -86,9 +86,9 @@ public class MenuScreen extends Screen {
 	public void tick() {
 		super.tick();
 
-	 if(FileConfigHandler.CONFIG_INSTANCE.toggleMode){
-		 handleMouseClick();
-	 }
+		if (FileConfigHandler.CONFIG_INSTANCE.toggleMode) {
+			handleMouseClick();
+		}
 	}
 
 	//? if >= 26.1 {
@@ -99,6 +99,10 @@ public class MenuScreen extends Screen {
 		guiContextLayer.setContext(context);
 		handleRender(guiContextLayer, mouseX, mouseY, delta);
 	}
+	@Override
+	public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+
+	}
 	*///? } else {
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
@@ -107,9 +111,17 @@ public class MenuScreen extends Screen {
 		guiContextLayer.setContext(context);
 		handleRender(guiContextLayer, mouseX, mouseY, delta);
 	}
+
+	//? if >=1.21.1 {
+	@Override
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+
+	}
 	//? }
 
-	private void handleRender(GuiGraphicsLayer context, int mouseX, int mouseY, float delta){
+	//? }
+
+	private void handleRender(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
 
 		//boolean isEnabled = FileConfigHandler.CONFIG_INSTANCE.modEnabled;
 		boolean hasScreen = client.screen != null;
@@ -161,9 +173,9 @@ public class MenuScreen extends Screen {
 		}
 	}
 
-	public void selectAndDeactivate(){
-		int scaledMouseX = (int)ClientPlayerUtils.getScaledMouseX(client);
-		int scaledMouseY = (int)ClientPlayerUtils.getScaledMouseY(client);
+	public void selectAndDeactivate() {
+		int scaledMouseX = (int) ClientPlayerUtils.getScaledMouseX(client);
+		int scaledMouseY = (int) ClientPlayerUtils.getScaledMouseY(client);
 
 		MenuScreen.INSTANCE.selectItem(scaledMouseX, scaledMouseY, 0);
 		MenuScreen.INSTANCE.deactivate(scaledMouseX, scaledMouseY);
@@ -198,7 +210,7 @@ public class MenuScreen extends Screen {
 
 			float distanceFromCenter = MathUtils.calculateDistanceBetweenPoints(centerX, centerY, mouseX, mouseY);
 
-			boolean mouseIn = (MathUtils.betweenTwoValues(distanceFromCenter, minRadiusIgnore, maxRadiusIgnore)) ? MathUtils.isAngleBetween(adjustedMouseAngle, checkStart, checkEnd) : false;
+			boolean mouseIn = MathUtils.betweenTwoValues(distanceFromCenter, minRadiusIgnore, maxRadiusIgnore) && MathUtils.isAngleBetween(adjustedMouseAngle, checkStart, checkEnd);
 
 			if (mouseIn) {
 				handleOffhandSelection(realSlotIndex);
@@ -229,8 +241,7 @@ public class MenuScreen extends Screen {
 
 				if (FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar && isConsumable) {
 					// Keep forward
-				}
-				else if (FileConfigHandler.CONFIG_INSTANCE.excludeHotbar || FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables) {
+				} else if (FileConfigHandler.CONFIG_INSTANCE.excludeHotbar || FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables) {
 					continue; // Otherwise, if excludeHotbar is on, or if then filtering only show consumables
 				}
 			}
@@ -264,15 +275,27 @@ public class MenuScreen extends Screen {
 	}
 
 	private void renderBackgrounds(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
+
+		if (!FileConfigHandler.CONFIG_INSTANCE.useMenuBackgroundEffects) {
+			return;
+		}
+
 		//? if <1.21.1 {
-
-			/*int color = 0x80000000;
-
-			context.pushMatrix();
-	        context.fill(0, 0, width, height, color);
-	        context.popMatrix();
-
-		*///? }
+        /*
+        int color = 0x80000000;
+        context.pushMatrix();
+        context.fill(0, 0, this.width, this.height, color);
+        context.popMatrix();
+        */
+		//? } else {
+		//? if >= 26.1 {
+        /*
+        super.extractBackground(context.unwrap(), mouseX, mouseY, delta);
+        */
+		//? } else {
+		super.renderBackground(context.unwrap(), mouseX, mouseY, delta);
+		//? }
+		//? }
 	}
 
 	private void renderItems(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
@@ -280,7 +303,6 @@ public class MenuScreen extends Screen {
 		Player player = this.client.player;
 		Inventory inventory = player.getInventory();
 		var textRenderer = client.font;
-
 		int centerX = clientWindow.getGuiScaledWidth() / 2;
 		int centerY = clientWindow.getGuiScaledHeight() / 2;
 
@@ -328,7 +350,7 @@ public class MenuScreen extends Screen {
 				if (isSelected) {
 					currentRadius += radialPopOut;
 				} else {
-					if(MIN_SLOTS_COUNT_FOR_SPACING < totalItemsToDraw) {
+					if (MIN_SLOTS_COUNT_FOR_SPACING < totalItemsToDraw) {
 						// Creates a "gap" for the selected item.
 						int diff = i - selectedIndex;
 						int halfTotal = totalItemsToDraw / 2;
@@ -421,9 +443,9 @@ public class MenuScreen extends Screen {
 		float itemCenterY = startY + halfItemSize;
 
 		context.pushMatrix();
-		context.translate(centerX, itemCenterY,0);
-		context.scaleMatrix(centerScale,centerScale,1);
-		context.translate(-8,-8,0);
+		context.translate(centerX, itemCenterY, 0);
+		context.scaleMatrix(centerScale, centerScale, 1);
+		context.translate(-8, -8, 0);
 
 		context.renderItem(itemStack, 0, 0);
 		context.renderItemDecoration(textRenderer, itemStack, 0, 0);
@@ -483,8 +505,8 @@ public class MenuScreen extends Screen {
 		boolean isLeftMousePressed = KeyInputUtils.isHardwareKeyPressed(keyAttack, clientWindow);
 
 		// This is not the best approach.
-        // It could be done using Screen events (like mousePressed, etc.),
-        // but due to differences between versions, it becomes a backward compatibility nightmare in code.
+		// It could be done using Screen events (like mousePressed, etc.),
+		// but due to differences between versions, it becomes a backward compatibility nightmare in code.
 
 		if (isLeftMousePressed && !wasLeftMousePressed) {
 			MenuScreen.INSTANCE.selectAndDeactivate();

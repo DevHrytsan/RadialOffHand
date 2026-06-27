@@ -91,6 +91,12 @@ public class RadialOffHandConfigScreen {
 				 .setRequirement(() -> onlyShowConsumablesToggle.getValue() == true && excludeHotbarToggle.getValue() == true)
 				 .build();
 
+		var showMenuBackgroundEffect = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.useMenuBackgroundEffects"), FileConfigHandler.CONFIG_INSTANCE.useMenuBackgroundEffects)
+				.setDefaultValue(true)
+				.setTooltip(Component.translatable("config.radialoffhand.option.useMenuBackgroundEffects.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.useMenuBackgroundEffects = newValue)
+				.build();
+
 		general.addEntry(modEnableToggle);
 		general.addEntry(scaleFactorSlider);
 		general.addEntry(toggleBooleanToggle);
@@ -102,6 +108,7 @@ public class RadialOffHandConfigScreen {
 		general.addEntry(excludeHotbarToggle);
 		general.addEntry(onlyShowConsumablesToggle);
 		general.addEntry(showConsumablesFromHotbarToggle);
+		general.addEntry(showMenuBackgroundEffect);
 
         return builder.build();
     }

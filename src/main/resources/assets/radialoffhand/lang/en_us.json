@@ -27,5 +27,7 @@
   "config.radialoffhand.option.onlyShowConsumables": "Show Only Consumables",
   "config.radialoffhand.option.onlyShowConsumables.tooltip": "Only display consumable items in the radial menu.",
   "config.radialoffhand.option.showConsumablesFromHotbar": "Show Consumables from Hotbar",
-  "config.radialoffhand.option.showConsumablesFromHotbar.tooltip": "Include consumable items from the hotbar even when it is excluded."
+  "config.radialoffhand.option.showConsumablesFromHotbar.tooltip": "Include consumable items from the hotbar even when it is excluded.",
+  "config.radialoffhand.option.useMenuBackgroundEffects": "Enable Menu Background Effects",
+  "config.radialoffhand.option.useMenuBackgroundEffects.tooltip": "Enables or disables background dimming(blur effects) in menus."
 }

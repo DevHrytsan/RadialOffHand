@@ -27,5 +27,7 @@
   "config.radialoffhand.option.onlyShowConsumables": "Лише витратні предмети",
   "config.radialoffhand.option.onlyShowConsumables.tooltip": "Показувати в радіальному меню лише витратні предмети.",
   "config.radialoffhand.option.showConsumablesFromHotbar": "Завжди враховувати витратні предмети з хотбара",
-  "config.radialoffhand.option.showConsumablesFromHotbar.tooltip": "Витратні предмети з хотбара залишаться доступними в радіальному меню, навіть якщо хотбар ігнорується опцією."
+  "config.radialoffhand.option.showConsumablesFromHotbar.tooltip": "Витратні предмети з хотбара залишаться доступними в радіальному меню, навіть якщо хотбар ігнорується опцією.",
+  "config.radialoffhand.option.useMenuBackgroundEffects": "Увімкнути ефекти для фона в меню",
+  "config.radialoffhand.option.useMenuBackgroundEffects.tooltip": "Вмикає або вимикає ефекти затемнення(розмиття фону) в меню."
 }
