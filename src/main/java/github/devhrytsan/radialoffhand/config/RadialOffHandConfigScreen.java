@@ -4,6 +4,7 @@ import github.devhrytsan.radialoffhand.Constants;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import github.devhrytsan.radialoffhand.utils.MenuUtils;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -117,6 +118,20 @@ public class RadialOffHandConfigScreen {
 				.setRequirement(() -> rightClickUnequipToggle.getValue() == true)
 				.build();
 
+		var consumableWhitelistList = entryBuilder.startStrList(Component.translatable("config.radialoffhand.option.consumableWhitelist"), new java.util.ArrayList<>(FileConfigHandler.CONFIG_INSTANCE.getConsumableWhitelist()))
+				.setDefaultValue(new java.util.ArrayList<>())
+				.setTooltip(Component.translatable("config.radialoffhand.option.consumableWhitelist.tooltip"))
+				.setCellErrorSupplier(RadialOffHandConfigScreen::validateItemId)
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.consumableWhitelist = MenuUtils.normalizeItemIds(newValue))
+				.build();
+
+		var consumableBlacklistList = entryBuilder.startStrList(Component.translatable("config.radialoffhand.option.consumableBlacklist"), new java.util.ArrayList<>(FileConfigHandler.CONFIG_INSTANCE.getConsumableBlacklist()))
+				.setDefaultValue(new java.util.ArrayList<>())
+				.setTooltip(Component.translatable("config.radialoffhand.option.consumableBlacklist.tooltip"))
+				.setCellErrorSupplier(RadialOffHandConfigScreen::validateItemId)
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.consumableBlacklist = MenuUtils.normalizeItemIds(newValue))
+				.build();
+
 		general.addEntry(modEnableToggle);
 		general.addEntry(scaleFactorSlider);
 		general.addEntry(toggleBooleanToggle);
@@ -127,6 +142,8 @@ public class RadialOffHandConfigScreen {
 		general.addEntry(prioritySortToggle);
 		general.addEntry(excludeHotbarToggle);
 		general.addEntry(onlyShowConsumablesToggle);
+		general.addEntry(consumableWhitelistList);
+		general.addEntry(consumableBlacklistList);
 		general.addEntry(showConsumablesFromHotbarToggle);
 		general.addEntry(showMenuBackgroundEffect);
 		general.addEntry(showSlotBackgroundToggle);
@@ -135,4 +152,9 @@ public class RadialOffHandConfigScreen {
 
         return builder.build();
     }
+
+	private static java.util.Optional<Component> validateItemId(String value) {
+		if (value == null || value.isBlank() || MenuUtils.normalizeItemId(value) != null) return java.util.Optional.empty();
+		return java.util.Optional.of(Component.translatable("config.radialoffhand.error.unknownItem", value.trim()));
+	}
 }

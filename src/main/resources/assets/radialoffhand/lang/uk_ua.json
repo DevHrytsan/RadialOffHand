@@ -3,6 +3,7 @@
   "modmenu.descriptionTranslation.radialoffhand": "Швидший спосіб поміщати предмети в другу руку",
   "key.category.radialoffhand.general": "Radial Offhand",
   "key.category.radialoffhand.openkey": "Відкрити радіальне меню",
+  "key.category.radialoffhand.showallitems": "Показати всі предмети (утримувати в меню)",
   "config.radialoffhand.category.general": "Загальні",
   "config.radialoffhand.option.enabled": "Увімкнути мод",
   "config.radialoffhand.option.enabled.tooltip": "Вмикає або вимикає мод.",
@@ -25,7 +26,7 @@
   "config.radialoffhand.option.excludeHotbar": "Не показувати комірки хотбара",
   "config.radialoffhand.option.excludeHotbar.tooltip": "Не показувати комірки хотбара в меню.",
   "config.radialoffhand.option.onlyShowConsumables": "Лише витратні предмети",
-  "config.radialoffhand.option.onlyShowConsumables.tooltip": "Показувати в радіальному меню лише витратні предмети.",
+  "config.radialoffhand.option.onlyShowConsumables.tooltip": "Показувати в радіальному меню лише витратні предмети. Натисніть середньою кнопкою миші на предмет у радіальному меню, щоб додати або прибрати його. Утримуйте клавішу «Показати всі предмети» (за замовчуванням лівий Alt), щоб тимчасово показати всі предмети.",
   "config.radialoffhand.option.showConsumablesFromHotbar": "Завжди враховувати витратні предмети з хотбара",
   "config.radialoffhand.option.showConsumablesFromHotbar.tooltip": "Витратні предмети з хотбара залишаться доступними в радіальному меню, навіть якщо хотбар ігнорується опцією.",
   "config.radialoffhand.option.useMenuBackgroundEffects": "Увімкнути ефекти для фона в меню",
@@ -37,5 +38,12 @@
   "config.radialoffhand.option.unequipPriority": "Куди знімати предмет",
   "config.radialoffhand.option.unequipPriority.tooltip": "Куди предмет потрапить насамперед. Якщо там немає місця, використовується інше.",
   "config.radialoffhand.option.unequipPriority.inventory_first": "Спочатку інвентар",
-  "config.radialoffhand.option.unequipPriority.hotbar_first": "Спочатку хотбар"
+  "config.radialoffhand.option.unequipPriority.hotbar_first": "Спочатку хотбар",
+  "config.radialoffhand.option.consumableWhitelist": "Додаткові витратні",
+  "config.radialoffhand.option.consumableWhitelist.tooltip": "Предмети, які завжди вважаються витратними, наприклад minecraft:spyglass. Простіше: натисніть середньою кнопкою миші на предмет у радіальному меню.",
+  "config.radialoffhand.option.consumableBlacklist": "Виключені витратні",
+  "config.radialoffhand.option.consumableBlacklist.tooltip": "Предмети, які ніколи не вважаються витратними. Простіше: натисніть середньою кнопкою миші на предмет у радіальному меню.",
+  "config.radialoffhand.error.unknownItem": "Невідомий предмет: %s",
+  "message.radialoffhand.consumable.added": "%s тепер вважається витратним",
+  "message.radialoffhand.consumable.removed": "%s більше не вважається витратним"
 }

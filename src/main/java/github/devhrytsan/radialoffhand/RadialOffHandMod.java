@@ -53,6 +53,7 @@ public class RadialOffHandMod {
 	public static final Logger MAIN_LOGGER = LoggerFactory.getLogger(MOD_ID);
 	// Keys
 	public static KeyMapping OPEN_RADIAL_OFFHAND_MENU_KEY;
+	public static KeyMapping SHOW_ALL_ITEMS_KEY; // Held while the menu is open to temporarily show every item
 
 	//? if >=1.21.5 && neoforge {
 	/*// NeoForge registers modded categories through RegisterKeyMappingsEvent instead
@@ -88,7 +89,10 @@ public class RadialOffHandMod {
 				KEYBIND_CATEGORY
 		);
 
+		SHOW_ALL_ITEMS_KEY = createShowAllItemsKey();
+
 		FabricKeyHelperBridge.register(OPEN_RADIAL_OFFHAND_MENU_KEY);
+		FabricKeyHelperBridge.register(SHOW_ALL_ITEMS_KEY);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			MenuController.INSTANCE.HandleUpdate(client);
@@ -108,10 +112,13 @@ public class RadialOffHandMod {
 				KEYBIND_CATEGORY
 		);
 
+		SHOW_ALL_ITEMS_KEY = createShowAllItemsKey();
+
 		//? if >=1.21.5 {
 		event.registerCategory(KEYBIND_CATEGORY);
 		//? }
 		event.register(OPEN_RADIAL_OFFHAND_MENU_KEY);
+		event.register(SHOW_ALL_ITEMS_KEY);
 	}
 
 	public static void InitializeModNeoForge(FMLClientSetupEvent setupEvent) {
@@ -149,7 +156,10 @@ public class RadialOffHandMod {
 				KeyInputUtils.DEFAULT_OPEN_MENU_KEY,
 				KEYBIND_CATEGORY
 		);
+		SHOW_ALL_ITEMS_KEY = createShowAllItemsKey();
+
 		event.register(OPEN_RADIAL_OFFHAND_MENU_KEY);
+		event.register(SHOW_ALL_ITEMS_KEY);
 	}
 
 	public static void InitializeModForge(FMLClientSetupEvent setupEvent) {
@@ -181,6 +191,15 @@ public class RadialOffHandMod {
 	}
 
 	*///?}
+
+	private static KeyMapping createShowAllItemsKey() {
+		return new KeyMapping(
+				"key.category.radialoffhand.showallitems",
+				KeyInputUtils.KEYBOARD_TYPE,
+				KeyInputUtils.DEFAULT_SHOW_ALL_ITEMS_KEY,
+				KEYBIND_CATEGORY
+		);
+	}
 
 	static Platform xplat() {
 		return PLATFORM;

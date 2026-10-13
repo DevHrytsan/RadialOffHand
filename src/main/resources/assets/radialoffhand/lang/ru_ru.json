@@ -3,6 +3,7 @@
   "modmenu.descriptionTranslation.radialoffhand": "Более быстрый способ помещать предметы во вторую руку",
   "key.category.radialoffhand.general": "Radial Offhand",
   "key.category.radialoffhand.openkey": "Открыть радиальное меню",
+  "key.category.radialoffhand.showallitems": "Показать все предметы (удерживать в меню)",
   "config.radialoffhand.category.general": "Общие",
   "config.radialoffhand.option.enabled": "Включить мод",
   "config.radialoffhand.option.enabled.tooltip": "Включает или отключает мод.",
@@ -25,7 +26,7 @@
   "config.radialoffhand.option.excludeHotbar": "Исключить предметы хотбара",
   "config.radialoffhand.option.excludeHotbar.tooltip": "Не показывать слоты хотбара в радиальном меню.",
   "config.radialoffhand.option.onlyShowConsumables": "Только расходуемые предметы",
-  "config.radialoffhand.option.onlyShowConsumables.tooltip": "Показывать в радиальном меню только расходуемые предметы.",
+  "config.radialoffhand.option.onlyShowConsumables.tooltip": "Показывать в радиальном меню только расходуемые предметы. Нажмите средней кнопкой мыши на предмет в радиальном меню, чтобы добавить или убрать его. Удерживайте клавишу «Показать все предметы» (по умолчанию левый Alt), чтобы временно показать все предметы.",
   "config.radialoffhand.option.showConsumablesFromHotbar": "Всегда учитывать расходуемые предметы с хотбара",
   "config.radialoffhand.option.showConsumablesFromHotbar.tooltip": "Расходуемые предметы с хотбара останутся доступными в радиальном меню, даже если хотбар исключён опцией.",
   "config.radialoffhand.option.useMenuBackgroundEffects": "Включить эффекты фона в меню",
@@ -37,5 +38,12 @@
   "config.radialoffhand.option.unequipPriority": "Куда снимать предмет",
   "config.radialoffhand.option.unequipPriority.tooltip": "Куда предмет попадёт в первую очередь. Если там нет места, используется другое место.",
   "config.radialoffhand.option.unequipPriority.inventory_first": "Сначала инвентарь",
-  "config.radialoffhand.option.unequipPriority.hotbar_first": "Сначала хотбар"
+  "config.radialoffhand.option.unequipPriority.hotbar_first": "Сначала хотбар",
+  "config.radialoffhand.option.consumableWhitelist": "Дополнительные расходуемые",
+  "config.radialoffhand.option.consumableWhitelist.tooltip": "Предметы, которые всегда считаются расходуемыми, например minecraft:spyglass. Проще: нажмите средней кнопкой мыши на предмет в радиальном меню.",
+  "config.radialoffhand.option.consumableBlacklist": "Исключённые расходуемые",
+  "config.radialoffhand.option.consumableBlacklist.tooltip": "Предметы, которые никогда не считаются расходуемыми. Проще: нажмите средней кнопкой мыши на предмет в радиальном меню.",
+  "config.radialoffhand.error.unknownItem": "Неизвестный предмет: %s",
+  "message.radialoffhand.consumable.added": "%s теперь считается расходуемым",
+  "message.radialoffhand.consumable.removed": "%s больше не считается расходуемым"
 }

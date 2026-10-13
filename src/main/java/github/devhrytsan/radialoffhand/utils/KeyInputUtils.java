@@ -21,9 +21,11 @@ public class KeyInputUtils {
 	//? if >=26.3 {
 	/*public static final InputConstants.Type KEYBOARD_TYPE = InputConstants.Type.KEYBOARD;
 	public static final int DEFAULT_OPEN_MENU_KEY = SDLScancode.SDL_SCANCODE_Z;
+	public static final int DEFAULT_SHOW_ALL_ITEMS_KEY = SDLScancode.SDL_SCANCODE_LALT;
 	*///? } else {
 	public static final InputConstants.Type KEYBOARD_TYPE = InputConstants.Type.KEYSYM;
 	public static final int DEFAULT_OPEN_MENU_KEY = GLFW.GLFW_KEY_Z;
+	public static final int DEFAULT_SHOW_ALL_ITEMS_KEY = GLFW.GLFW_KEY_LEFT_ALT;
 	//? }
 
 	public static InputConstants.Key GetBoundKey(KeyMapping keyBinding) {

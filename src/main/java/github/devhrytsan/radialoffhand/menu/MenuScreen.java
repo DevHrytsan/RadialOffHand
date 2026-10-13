@@ -1,6 +1,7 @@
 package github.devhrytsan.radialoffhand.menu;
 
 import github.devhrytsan.radialoffhand.compatibility.GuiGraphicsLayer;
+import github.devhrytsan.radialoffhand.RadialOffHandMod;
 import github.devhrytsan.radialoffhand.config.FileConfigHandler;
 import github.devhrytsan.radialoffhand.config.UnequipPriority;
 import github.devhrytsan.radialoffhand.utils.ClientPlayerUtils;
@@ -72,6 +73,10 @@ public class MenuScreen extends Screen {
 
 	private boolean wasLeftMousePressed = false;
 	private boolean wasRightMousePressed = false;
+	private boolean wasMiddleMousePressed = false;
+
+	// Inventory slot under the mouse in the last rendered frame, or -1
+	private int hoveredSlot = -1;
 
 	private final Minecraft client = Minecraft.getInstance();
 	public static final MenuScreen INSTANCE = new MenuScreen();
@@ -102,6 +107,8 @@ public class MenuScreen extends Screen {
 		if (FileConfigHandler.CONFIG_INSTANCE.useRightClickUnequip) {
 			handleRightMouseClick();
 		}
+
+		handleMiddleMouseClick();
 	}
 
 	//? if >= 26.1 {
@@ -175,6 +182,8 @@ public class MenuScreen extends Screen {
 			// A button still held from before opening (e.g. mining) must not count as a click
 			this.wasLeftMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyAttack, client.getWindow());
 			this.wasRightMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyUse, client.getWindow());
+			this.wasMiddleMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyPickItem, client.getWindow());
+			this.hoveredSlot = -1;
 			// So basically it works it only allows when the player is playing the game and not looking at another menu.
 			active = true;
 			ClientPlayerUtils.setScreen(client, INSTANCE);
@@ -242,6 +251,10 @@ public class MenuScreen extends Screen {
 
 		slotsToDraw.clear();
 
+		// Holding the key temporarily shows every item, so filtered-out items can be marked as consumables
+		boolean showAllItems = RadialOffHandMod.SHOW_ALL_ITEMS_KEY != null
+				&& KeyInputUtils.isHardwareKeyPressed(RadialOffHandMod.SHOW_ALL_ITEMS_KEY, client.getWindow());
+
 		for (int i = 0; i < MAX_SLOTS_COUNT; i++) {
 
 			boolean isHotbarSlot = Inventory.isHotbarSlot(i);
@@ -249,6 +262,11 @@ public class MenuScreen extends Screen {
 			ItemStack stack = inventory.getItem(i);
 
 			if (FileConfigHandler.CONFIG_INSTANCE.hideEmptySlots && stack.isEmpty()) {
+				continue;
+			}
+
+			if (showAllItems) {
+				slotsToDraw.add(i);
 				continue;
 			}
 
@@ -349,6 +367,8 @@ public class MenuScreen extends Screen {
 				}
 			}
 		}
+
+		hoveredSlot = selectedIndex != -1 ? slotsToDraw.get(selectedIndex) : -1;
 
 		float radialPopOut = 8f;
 
@@ -565,6 +585,24 @@ public class MenuScreen extends Screen {
 			if (inventory.getItem(i).isEmpty()) return i;
 		}
 		return -1;
+	}
+
+	// Middle click (the Pick Block key) on a hovered item toggles whether it counts as a consumable
+	private void handleMiddleMouseClick() {
+		var keyPickItem = Minecraft.getInstance().options.keyPickItem;
+		boolean isMiddleMousePressed = KeyInputUtils.isHardwareKeyPressed(keyPickItem, client.getWindow());
+
+		if (isMiddleMousePressed && !wasMiddleMousePressed && hoveredSlot != -1 && client.player != null) {
+			ItemStack stack = client.player.getInventory().getItem(hoveredSlot);
+
+			if (!stack.isEmpty()) {
+				boolean isConsumable = MenuUtils.toggleConsumable(stack);
+				String messageKey = isConsumable ? "message.radialoffhand.consumable.added" : "message.radialoffhand.consumable.removed";
+				ClientPlayerUtils.setOverlayMessage(client, Component.translatable(messageKey, stack.getHoverName()));
+			}
+		}
+
+		wasMiddleMousePressed = isMiddleMousePressed;
 	}
 
 	private void handleRightMouseClick() {

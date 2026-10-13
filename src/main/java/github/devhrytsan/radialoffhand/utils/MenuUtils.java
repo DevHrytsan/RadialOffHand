@@ -1,8 +1,14 @@
 package github.devhrytsan.radialoffhand.utils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import github.devhrytsan.radialoffhand.config.FileConfigHandler;
+import github.devhrytsan.radialoffhand.config.RadialOffHandConfig;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.Blocks;
@@ -77,7 +83,57 @@ public class MenuUtils {
 		return 6;
 	}
 
+	public static String getItemId(ItemStack stack) {
+		return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+	}
+
+	// Turns user input like " Spyglass " or "minecraft:spyglass" into "minecraft:spyglass".
+	// Returns null when the text is not a known item id.
+	public static String normalizeItemId(String input) {
+		if (input == null) return null;
+		ResourceLocation id = ResourceLocation.tryParse(input.trim().toLowerCase(Locale.ROOT));
+		if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) return null;
+		return id.toString();
+	}
+
+	// Cleans a list from the config screen: normalizes ids, drops unknown ones and duplicates
+	public static List<String> normalizeItemIds(List<String> input) {
+		List<String> result = new ArrayList<>();
+		for (String entry : input) {
+			String id = normalizeItemId(entry);
+			if (id != null && !result.contains(id)) result.add(id);
+		}
+		return result;
+	}
+
+	// The player's own lists win over the built-in rules
 	public static boolean isConsumable(ItemStack stack) {
+		RadialOffHandConfig config = FileConfigHandler.CONFIG_INSTANCE;
+		String id = getItemId(stack);
+
+		if (config.getConsumableBlacklist().contains(id)) return false;
+		if (config.getConsumableWhitelist().contains(id)) return true;
+
+		return isDefaultConsumable(stack);
+	}
+
+	// Flips whether the item counts as a consumable, saves the config and returns the new state
+	public static boolean toggleConsumable(ItemStack stack) {
+		RadialOffHandConfig config = FileConfigHandler.CONFIG_INSTANCE;
+		String id = getItemId(stack);
+		boolean wasConsumable = isConsumable(stack);
+
+		if (wasConsumable) {
+			if (!config.getConsumableWhitelist().remove(id)) config.getConsumableBlacklist().add(id);
+		} else {
+			if (!config.getConsumableBlacklist().remove(id)) config.getConsumableWhitelist().add(id);
+		}
+
+		FileConfigHandler.saveConfig();
+		return !wasConsumable;
+	}
+
+	private static boolean isDefaultConsumable(ItemStack stack) {
 
 		Item item = stack.getItem();
 
@@ -90,6 +146,8 @@ public class MenuUtils {
 		//? }
 
 		boolean isDrinkable = stack.is(Items.POTION)
+				|| stack.is(Items.SPLASH_POTION)
+				|| stack.is(Items.LINGERING_POTION)
 				|| stack.is(Items.MILK_BUCKET)
 				|| stack.is(Items.HONEY_BOTTLE);
 
@@ -119,11 +177,15 @@ public class MenuUtils {
 				|| item instanceof LeadItem
 				|| item instanceof FlintAndSteelItem
 				|| item instanceof MapItem
+				|| stack.is(Items.MAP)
+				|| stack.is(Items.RECOVERY_COMPASS)
 				|| item instanceof SpyglassItem
 				|| item instanceof CompassItem
 				|| stack.is(Items.CLOCK);
 
 		boolean isLightSource = stack.is(Items.TORCH)
+				|| stack.is(Items.SOUL_TORCH)
+				|| stack.is(Items.REDSTONE_TORCH)
 				|| stack.is(Items.LANTERN)
 				|| stack.is(Items.SOUL_LANTERN);
 

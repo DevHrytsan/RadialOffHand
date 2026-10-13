@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 
 //? if >= 26.1 {
 /*import net.minecraft.world.inventory.ContainerInput;
@@ -36,6 +37,15 @@ public class ClientPlayerUtils {
 		/*client.gui.setScreen(screen);
 		*///? } else {
 		client.setScreen(screen);
+		 //? }
+	}
+
+	// Shows a message above the hotbar (action bar)
+	public static void setOverlayMessage(Minecraft client, Component message) {
+		//? if >=26.2 {
+		/*client.gui.hud.setOverlayMessage(message, false);
+		*///? } else {
+		client.gui.setOverlayMessage(message, false);
 		 //? }
 	}
 
