@@ -35,7 +35,7 @@ public class MenuController {
 						if (MenuScreen.INSTANCE.active) {
 							MenuScreen.INSTANCE.deactivate(0,0);
 						} else {
-							if (client.screen == null || client.screen instanceof MenuScreen) {
+							if (ClientPlayerUtils.getScreen(client) == null || ClientPlayerUtils.getScreen(client) instanceof MenuScreen) {
 								MenuScreen.INSTANCE.activate();
 							}
 						}
@@ -45,7 +45,7 @@ public class MenuController {
 					if (radialMenuKeyDown != MenuScreen.INSTANCE.active) {
 
 						if (radialMenuKeyDown) {
-							if ((client.screen == null || client.screen instanceof MenuScreen)) {
+							if ((ClientPlayerUtils.getScreen(client) == null || ClientPlayerUtils.getScreen(client) instanceof MenuScreen)) {
 								MenuScreen.INSTANCE.activate();
 							}
 						} else {

@@ -17,6 +17,9 @@ Currently supported platforms and versions:
 - Fabric, Neoforge 1.21.1
 - Fabric, Neoforge 1.21.10
 - Fabric, Neoforge 1.21.11
+- Fabric, Neoforge 26.1.2
+- Fabric, Neoforge 26.2
+- Fabric, Neoforge 26.3
 
 ### Download Links
 You can download mod from the following platforms:

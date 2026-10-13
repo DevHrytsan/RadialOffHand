@@ -8,12 +8,13 @@ import github.devhrytsan.radialoffhand.menu.MenuScreen;
 import github.devhrytsan.radialoffhand.menu.MenuMovementController;
 
 import github.devhrytsan.radialoffhand.platform.Platform;
+import github.devhrytsan.radialoffhand.utils.ClientPlayerUtils;
+import github.devhrytsan.radialoffhand.utils.KeyInputUtils;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.fml.ModLoadingContext;
+import github.devhrytsan.radialoffhand.platform.neoforge.NeoforgeEntrypoint;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 		*///?} forge {
 /*import github.devhrytsan.radialoffhand.platform.forge.ForgePlatform;
@@ -38,7 +39,7 @@ import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.fml.ModLoadingContext;
+import github.devhrytsan.radialoffhand.platform.forge.ForgeEntrypoint;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 *///?}
 
@@ -53,7 +54,10 @@ public class RadialOffHandMod {
 	// Keys
 	public static KeyMapping OPEN_RADIAL_OFFHAND_MENU_KEY;
 
-	//? if >=1.21.5 {
+	//? if >=1.21.5 && neoforge {
+	/*// NeoForge registers modded categories through RegisterKeyMappingsEvent instead
+	public static final KeyMapping.Category KEYBIND_CATEGORY = new KeyMapping.Category(ResourceLocation.fromNamespaceAndPath(RadialOffHandMod.MOD_ID, "general"));
+	*///? } elif >=1.21.5 {
 	public static final KeyMapping.Category KEYBIND_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(RadialOffHandMod.MOD_ID, "general"));
 	//? } else {
 
@@ -79,8 +83,8 @@ public class RadialOffHandMod {
 	public static void InitializeModFabric() {
 		OPEN_RADIAL_OFFHAND_MENU_KEY = new KeyMapping(
 				"key.category.radialoffhand.openkey",
-				InputConstants.Type.KEYSYM,
-				GLFW.GLFW_KEY_Z,
+				KeyInputUtils.KEYBOARD_TYPE,
+				KeyInputUtils.DEFAULT_OPEN_MENU_KEY,
 				KEYBIND_CATEGORY
 		);
 
@@ -89,7 +93,7 @@ public class RadialOffHandMod {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			MenuController.INSTANCE.HandleUpdate(client);
 
-			if (client.screen instanceof MenuScreen) {
+			if (ClientPlayerUtils.getScreen(client) instanceof MenuScreen) {
 				if(FileConfigHandler.CONFIG_INSTANCE.allowMovementWhileOpen) MenuMovementController.INSTANCE.handleMovement();
 			}
 		});
@@ -99,11 +103,14 @@ public class RadialOffHandMod {
 	/*public static void RegisterKeysNeoForge(RegisterKeyMappingsEvent event) {
 		OPEN_RADIAL_OFFHAND_MENU_KEY = new KeyMapping(
 				"key.category.radialoffhand.openkey",
-				InputConstants.Type.KEYSYM,
-				GLFW.GLFW_KEY_Z,
+				KeyInputUtils.KEYBOARD_TYPE,
+				KeyInputUtils.DEFAULT_OPEN_MENU_KEY,
 				KEYBIND_CATEGORY
 		);
 
+		//? if >=1.21.5 {
+		event.registerCategory(KEYBIND_CATEGORY);
+		//? }
 		event.register(OPEN_RADIAL_OFFHAND_MENU_KEY);
 	}
 
@@ -117,18 +124,20 @@ public class RadialOffHandMod {
 				MenuController.INSTANCE.HandleUpdate(clientI);
 			}
 
-			if (clientI.screen instanceof MenuScreen) {
-				if (FileConfigHandler.CONFIG_INSTANCE.allowMovementWhileOpen) {
-					boolean isMenuActive = MenuScreen.INSTANCE.active;
-					MenuMovementController.INSTANCE.updateMovementKeyContextNeoForge(isMenuActive);
-					MenuMovementController.INSTANCE.handleMovement();
-				}
+			boolean moveInMenu = ClientPlayerUtils.getScreen(clientI) instanceof MenuScreen
+					&& MenuScreen.INSTANCE.active
+					&& FileConfigHandler.CONFIG_INSTANCE.allowMovementWhileOpen;
+
+			// Runs every tick so the original key contexts are restored once the menu closes
+			MenuMovementController.INSTANCE.updateMovementKeyContextNeoForge(moveInMenu);
+			if (moveInMenu) {
+				MenuMovementController.INSTANCE.handleMovement();
 			}
 		});
 
-		ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> (client, parent) -> {
+		NeoforgeEntrypoint.CONTAINER.registerExtensionPoint(IConfigScreenFactory.class, (IConfigScreenFactory) (client, parent) -> {
 			return RadialOffHandConfigScreen.createConfigScreen(parent);
-		}); //TODO: Rewrite that because of deprecated API.
+		});
 	}
 
 	*///?} forge {
@@ -136,8 +145,8 @@ public class RadialOffHandMod {
 	/*public static void RegisterKeysForge(RegisterKeyMappingsEvent event) {
 	    OPEN_RADIAL_OFFHAND_MENU_KEY = new KeyMapping(
 				"key.category.radialoffhand.openkey",
-				InputConstants.Type.KEYSYM,
-				GLFW.GLFW_KEY_Z,
+				KeyInputUtils.KEYBOARD_TYPE,
+				KeyInputUtils.DEFAULT_OPEN_MENU_KEY,
 				KEYBIND_CATEGORY
 		);
 		event.register(OPEN_RADIAL_OFFHAND_MENU_KEY);
@@ -151,22 +160,24 @@ public class RadialOffHandMod {
 			if (event.phase == TickEvent.Phase.END) {
 				MenuController.INSTANCE.HandleUpdate(clientI);
 
-				if (clientI.screen instanceof MenuScreen) {
-				if (FileConfigHandler.CONFIG_INSTANCE.allowMovementWhileOpen) {
-					boolean isMenuActive = MenuScreen.INSTANCE.active;
-					MenuMovementController.INSTANCE.updateMovementKeyContextNeoForge(isMenuActive);
+				boolean moveInMenu = ClientPlayerUtils.getScreen(clientI) instanceof MenuScreen
+						&& MenuScreen.INSTANCE.active
+						&& FileConfigHandler.CONFIG_INSTANCE.allowMovementWhileOpen;
+
+				// Runs every tick so the original key contexts are restored once the menu closes
+				MenuMovementController.INSTANCE.updateMovementKeyContextNeoForge(moveInMenu);
+				if (moveInMenu) {
 					MenuMovementController.INSTANCE.handleMovement();
 				}
 			}
-			}
 		});
 
-		ModLoadingContext.get().registerExtensionPoint(
+		ForgeEntrypoint.CONTEXT.registerExtensionPoint(
 				ConfigScreenHandler.ConfigScreenFactory.class,
 				() -> new ConfigScreenHandler.ConfigScreenFactory((client, parent) -> {
 					return RadialOffHandConfigScreen.createConfigScreen(parent);
 				})
-		); //TODO: Rewrite that because of deprecated API.
+		);
 	}
 
 	*///?}
