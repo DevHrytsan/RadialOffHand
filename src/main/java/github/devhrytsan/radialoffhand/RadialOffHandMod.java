@@ -48,7 +48,7 @@ public class RadialOffHandMod {
 
 	// General
 	public static final String MOD_ID = /*$ mod_id*/ "radialoffhand";
-	public static final String MOD_VERSION = /*$ mod_version*/ "0.1.0";
+	public static final String MOD_VERSION = /*$ mod_version*/ "0.3.0";
 	public static final String MOD_FRIENDLY_NAME = /*$ mod_name*/ "Radial Offhand";
 	public static final Logger MAIN_LOGGER = LoggerFactory.getLogger(MOD_ID);
 	// Keys
