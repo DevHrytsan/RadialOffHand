@@ -31,5 +31,11 @@
   "config.radialoffhand.option.useMenuBackgroundEffects": "Увімкнути ефекти для фона в меню",
   "config.radialoffhand.option.useMenuBackgroundEffects.tooltip": "Вмикає або вимикає ефекти затемнення(розмиття фону) в меню.",
   "config.radialoffhand.option.showSlotBackground": "Показувати фон слота",
-  "config.radialoffhand.option.showSlotBackground.tooltip": "Малює рамку слота інвентаря навколо кожного предмета у радіальному меню."
+  "config.radialoffhand.option.showSlotBackground.tooltip": "Малює рамку слота інвентаря навколо кожного предмета у радіальному меню.",
+  "config.radialoffhand.option.useRightClickUnequip": "Знімати правим кліком",
+  "config.radialoffhand.option.useRightClickUnequip.tooltip": "Правий клік при відкритому радіальному меню повертає предмет з другої руки в інвентар. Нічого не відбувається, якщо немає вільного слота.",
+  "config.radialoffhand.option.unequipPriority": "Куди знімати предмет",
+  "config.radialoffhand.option.unequipPriority.tooltip": "Куди предмет потрапить насамперед. Якщо там немає місця, використовується інше.",
+  "config.radialoffhand.option.unequipPriority.inventory_first": "Спочатку інвентар",
+  "config.radialoffhand.option.unequipPriority.hotbar_first": "Спочатку хотбар"
 }

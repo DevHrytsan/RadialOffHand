@@ -103,6 +103,20 @@ public class RadialOffHandConfigScreen {
 				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.showSlotBackground = newValue)
 				.build();
 
+		var rightClickUnequipToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.useRightClickUnequip"), FileConfigHandler.CONFIG_INSTANCE.useRightClickUnequip)
+				.setDefaultValue(true)
+				.setTooltip(Component.translatable("config.radialoffhand.option.useRightClickUnequip.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.useRightClickUnequip = newValue)
+				.build();
+
+		var unequipPrioritySelector = entryBuilder.startEnumSelector(Component.translatable("config.radialoffhand.option.unequipPriority"), UnequipPriority.class, FileConfigHandler.CONFIG_INSTANCE.getUnequipPriority())
+				.setDefaultValue(UnequipPriority.INVENTORY_FIRST)
+				.setEnumNameProvider(value -> Component.translatable("config.radialoffhand.option.unequipPriority." + value.name().toLowerCase()))
+				.setTooltip(Component.translatable("config.radialoffhand.option.unequipPriority.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.unequipPriority = newValue)
+				.setRequirement(() -> rightClickUnequipToggle.getValue() == true)
+				.build();
+
 		general.addEntry(modEnableToggle);
 		general.addEntry(scaleFactorSlider);
 		general.addEntry(toggleBooleanToggle);
@@ -116,6 +130,8 @@ public class RadialOffHandConfigScreen {
 		general.addEntry(showConsumablesFromHotbarToggle);
 		general.addEntry(showMenuBackgroundEffect);
 		general.addEntry(showSlotBackgroundToggle);
+		general.addEntry(rightClickUnequipToggle);
+		general.addEntry(unequipPrioritySelector);
 
         return builder.build();
     }

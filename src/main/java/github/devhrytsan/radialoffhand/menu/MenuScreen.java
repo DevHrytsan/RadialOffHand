@@ -2,6 +2,7 @@ package github.devhrytsan.radialoffhand.menu;
 
 import github.devhrytsan.radialoffhand.compatibility.GuiGraphicsLayer;
 import github.devhrytsan.radialoffhand.config.FileConfigHandler;
+import github.devhrytsan.radialoffhand.config.UnequipPriority;
 import github.devhrytsan.radialoffhand.utils.ClientPlayerUtils;
 import github.devhrytsan.radialoffhand.utils.KeyInputUtils;
 import github.devhrytsan.radialoffhand.utils.MathUtils;
@@ -70,6 +71,7 @@ public class MenuScreen extends Screen {
 	private int totalItemsToDraw = 0;
 
 	private boolean wasLeftMousePressed = false;
+	private boolean wasRightMousePressed = false;
 
 	private final Minecraft client = Minecraft.getInstance();
 	public static final MenuScreen INSTANCE = new MenuScreen();
@@ -95,6 +97,10 @@ public class MenuScreen extends Screen {
 
 		if (FileConfigHandler.CONFIG_INSTANCE.toggleMode) {
 			handleMouseClick();
+		}
+
+		if (FileConfigHandler.CONFIG_INSTANCE.useRightClickUnequip) {
+			handleRightMouseClick();
 		}
 	}
 
@@ -168,6 +174,7 @@ public class MenuScreen extends Screen {
 
 			// A button still held from before opening (e.g. mining) must not count as a click
 			this.wasLeftMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyAttack, client.getWindow());
+			this.wasRightMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyUse, client.getWindow());
 			// So basically it works it only allows when the player is playing the game and not looking at another menu.
 			active = true;
 			ClientPlayerUtils.setScreen(client, INSTANCE);
@@ -531,6 +538,46 @@ public class MenuScreen extends Screen {
 		} else {
 			ClientPlayerUtils.handleMouseClickSwap(client, OFFHAND_SLOT_ID, sourceSlot);
 		}
+	}
+
+	// Moves the offhand item into the first empty slot, in the configured priority order.
+	// Returns false (and leaves the item in place) when the offhand is empty or there is no free slot.
+	private boolean unequipOffhand() {
+		if (client == null || client.player == null || client.getConnection() == null) return false;
+		if (client.player.getOffhandItem().isEmpty()) return false;
+
+		Inventory inventory = client.player.getInventory();
+		boolean hotbarFirst = FileConfigHandler.CONFIG_INSTANCE.getUnequipPriority() == UnequipPriority.HOTBAR_FIRST;
+
+		int targetSlot = hotbarFirst ? findEmptySlot(inventory, 0, 9) : findEmptySlot(inventory, 9, 36);
+		if (targetSlot == -1) {
+			targetSlot = hotbarFirst ? findEmptySlot(inventory, 9, 36) : findEmptySlot(inventory, 0, 9);
+		}
+		if (targetSlot == -1) return false;
+
+		// Swapping the offhand with an empty slot moves the item there
+		handleOffhandSelection(targetSlot);
+		return true;
+	}
+
+	private static int findEmptySlot(Inventory inventory, int from, int to) {
+		for (int i = from; i < to; i++) {
+			if (inventory.getItem(i).isEmpty()) return i;
+		}
+		return -1;
+	}
+
+	private void handleRightMouseClick() {
+		var keyUse = Minecraft.getInstance().options.keyUse;
+		boolean isRightMousePressed = KeyInputUtils.isHardwareKeyPressed(keyUse, client.getWindow());
+
+		if (isRightMousePressed && !wasRightMousePressed) {
+			if (unequipOffhand()) {
+				deactivate(0, 0);
+			}
+		}
+
+		wasRightMousePressed = isRightMousePressed;
 	}
 
 	private void handleMouseClick() {
