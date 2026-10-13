@@ -57,6 +57,13 @@ public class MenuScreen extends Screen {
 
 	protected static final int OFFHAND_SLOT_ID = 40;
 
+	protected static final float SLOT_BORDER_SCALE_FACTOR = 1.2f;
+	protected static final int SLOT_OUTER_BORDER_COLOR = 0xFFA0A0A0;
+	protected static final int SLOT_OUTER_BORDER_SELECTED_COLOR = 0xFFFFFFFF;
+	protected static final int SLOT_INNER_BORDER_COLOR = 0xFF000000;
+	protected static final int SLOT_FILL_COLOR = 0x66000000; // Black at 40% opacity
+	protected static final int SLOT_FILL_SELECTED_COLOR = 0x50FFFFFF; // White at 30% opacity
+
 	private static float[] SPACING_PUSH = {0.0f, 8.0f, 5.0f, 4.0f, 2.0f, 1.0f};
 
 	private List<Integer> slotsToDraw;
@@ -393,6 +400,10 @@ public class MenuScreen extends Screen {
 			context.scaleMatrix(scale, scale, 1);
 			context.translate(-8, -8, 0);
 
+			if (FileConfigHandler.CONFIG_INSTANCE.showSlotBackground) {
+				renderSlotBorder(context, isSelected);
+			}
+
 			context.renderItem(stack, 0, 0);
 			context.renderItemDecoration(textRenderer, stack, 0, 0);
 
@@ -403,6 +414,28 @@ public class MenuScreen extends Screen {
 		if (FileConfigHandler.CONFIG_INSTANCE.useCenterItemPreview && !selectedStack.isEmpty()) {
 			renderCenterItem(context, selectedStack);
 		}
+	}
+
+	// Draws an 18x18 slot frame (light outer border, dark inner border, translucent fill),
+	// scaled around the item's center. Expects the matrix to be at the item's 16x16 origin.
+	private void renderSlotBorder(GuiGraphicsLayer context, boolean isSelected) {
+		context.pushMatrix();
+		context.translate(8, 8, 0);
+		context.scaleMatrix(SLOT_BORDER_SCALE_FACTOR, SLOT_BORDER_SCALE_FACTOR, 1);
+		context.translate(-9, -9, 0);
+
+		context.fill(2, 2, 16, 16, isSelected ? SLOT_FILL_SELECTED_COLOR : SLOT_FILL_COLOR);
+		renderFrame(context, 1, 1, 17, 17, SLOT_INNER_BORDER_COLOR);
+		renderFrame(context, 0, 0, 18, 18, isSelected ? SLOT_OUTER_BORDER_SELECTED_COLOR : SLOT_OUTER_BORDER_COLOR);
+
+		context.popMatrix();
+	}
+
+	private void renderFrame(GuiGraphicsLayer context, int minX, int minY, int maxX, int maxY, int color) {
+		context.fill(minX, minY, maxX, minY + 1, color);
+		context.fill(minX, maxY - 1, maxX, maxY, color);
+		context.fill(minX, minY + 1, minX + 1, maxY - 1, color);
+		context.fill(maxX - 1, minY + 1, maxX, maxY - 1, color);
 	}
 
 	private void renderCenterItem(GuiGraphicsLayer context, ItemStack itemStack) {

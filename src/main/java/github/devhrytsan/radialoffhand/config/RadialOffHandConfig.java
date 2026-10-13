@@ -14,4 +14,5 @@ public class RadialOffHandConfig {
 	public boolean onlyShowConsumables = false; // Show only consumables
 	public boolean showConsumablesFromHotbar = true; // Include consumables from the hotbar even if it's excluded
 	public boolean useMenuBackgroundEffects = true; // Enables or disables the background tint(blur) behind menu.
+	public boolean showSlotBackground = false; // Draws inventory slot borders around each item in the radial menu.
 }
