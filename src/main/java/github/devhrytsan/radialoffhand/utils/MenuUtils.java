@@ -1,14 +1,11 @@
 package github.devhrytsan.radialoffhand.utils;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import github.devhrytsan.radialoffhand.config.FileConfigHandler;
 import github.devhrytsan.radialoffhand.config.RadialOffHandConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.Blocks;
@@ -96,25 +93,6 @@ public class MenuUtils {
 		return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 	}
 
-	// Turns user input like " Spyglass " or "minecraft:spyglass" into "minecraft:spyglass".
-	// Returns null when the text is not a known item id.
-	public static String normalizeItemId(String input) {
-		if (input == null) return null;
-		ResourceLocation id = ResourceLocation.tryParse(input.trim().toLowerCase(Locale.ROOT));
-		if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) return null;
-		return id.toString();
-	}
-
-	// Cleans a list from the config screen: normalizes ids, drops unknown ones and duplicates
-	public static List<String> normalizeItemIds(List<String> input) {
-		List<String> result = new ArrayList<>();
-		for (String entry : input) {
-			String id = normalizeItemId(entry);
-			if (id != null && !result.contains(id)) result.add(id);
-		}
-		return result;
-	}
-
 	// The player's own lists win over the built-in rules
 	public static boolean isConsumable(ItemStack stack) {
 		RadialOffHandConfig config = FileConfigHandler.CONFIG_INSTANCE;
@@ -140,6 +118,30 @@ public class MenuUtils {
 
 		FileConfigHandler.saveConfig();
 		return !wasConsumable;
+	}
+
+	// Whether the player changed this item away from the mod's default
+	public static boolean isConsumableChanged(ItemStack stack) {
+		RadialOffHandConfig config = FileConfigHandler.CONFIG_INSTANCE;
+		String id = getItemId(stack);
+		return config.getConsumableWhitelist().contains(id) || config.getConsumableBlacklist().contains(id);
+	}
+
+	// Puts one item back to the mod's default
+	public static void resetConsumable(ItemStack stack) {
+		RadialOffHandConfig config = FileConfigHandler.CONFIG_INSTANCE;
+		String id = getItemId(stack);
+		config.getConsumableWhitelist().remove(id);
+		config.getConsumableBlacklist().remove(id);
+		FileConfigHandler.saveConfig();
+	}
+
+	// Puts every item back to the mod's default
+	public static void resetAllConsumables() {
+		RadialOffHandConfig config = FileConfigHandler.CONFIG_INSTANCE;
+		config.getConsumableWhitelist().clear();
+		config.getConsumableBlacklist().clear();
+		FileConfigHandler.saveConfig();
 	}
 
 	private static boolean isDefaultConsumable(ItemStack stack) {

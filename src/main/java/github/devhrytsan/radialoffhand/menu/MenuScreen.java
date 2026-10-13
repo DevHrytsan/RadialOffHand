@@ -271,13 +271,12 @@ public class MenuScreen extends Screen {
 				continue;
 			}
 
-			if (isHotbarSlot) {
+			if (isHotbarSlot && FileConfigHandler.CONFIG_INSTANCE.excludeHotbar) {
 				boolean isConsumable = !stack.isEmpty() && MenuUtils.isConsumable(stack);
 
-				if (FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar && isConsumable) {
-					// Keep forward
-				} else if (FileConfigHandler.CONFIG_INSTANCE.excludeHotbar || FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables) {
-					continue; // Otherwise, if excludeHotbar is on, or if then filtering only show consumables
+				// An excluded hotbar still shows its consumables when that option is on
+				if (!(FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar && isConsumable)) {
+					continue;
 				}
 			}
 
@@ -640,7 +639,10 @@ public class MenuScreen extends Screen {
 		var keyPickItem = Minecraft.getInstance().options.keyPickItem;
 		boolean isMiddleMousePressed = KeyInputUtils.isHardwareKeyPressed(keyPickItem, client.getWindow());
 
-		if (isMiddleMousePressed && !wasMiddleMousePressed && hoveredSlot != -1 && client.player != null) {
+		// The consumable list only matters while one of the consumable filters is on
+		boolean isConsumableFilterOn = FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables || FileConfigHandler.CONFIG_INSTANCE.excludeHotbar;
+
+		if (isMiddleMousePressed && !wasMiddleMousePressed && isConsumableFilterOn && hoveredSlot != -1 && client.player != null) {
 			ItemStack stack = client.player.getInventory().getItem(hoveredSlot);
 
 			if (!stack.isEmpty()) {
