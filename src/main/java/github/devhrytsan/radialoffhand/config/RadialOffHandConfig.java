@@ -17,7 +17,7 @@ public class RadialOffHandConfig {
 	public boolean onlyShowConsumables = false; // Show only consumables
 	public boolean showConsumablesFromHotbar = true; // Include consumables from the hotbar even if it's excluded
 	public boolean useMenuBackgroundEffects = true; // Enables or disables the background tint(blur) behind menu.
-	public boolean showSlotBackground = false; // Draws inventory slot borders around each item in the radial menu.
+	public boolean showSlotBackground = false; // Draws a slot frame behind each item in the radial menu.
 	public boolean useRightClickUnequip = true; // Right click while the radial menu is open moves the offhand item back into the inventory.
 	public UnequipPriority unequipPriority = UnequipPriority.INVENTORY_FIRST; // Where the unequipped item goes first: main inventory or hotbar.
 

@@ -83,6 +83,15 @@ public class MenuUtils {
 		return 6;
 	}
 
+	// Whether two stacks can merge into one (same item and same data)
+	public static boolean canStack(ItemStack a, ItemStack b) {
+		//? if >=1.20.5 {
+		return ItemStack.isSameItemSameComponents(a, b);
+		//? } else {
+		/*return ItemStack.isSameItemSameTags(a, b);
+		*///? }
+	}
+
 	public static String getItemId(ItemStack stack) {
 		return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 	}

@@ -58,6 +58,7 @@ public class MenuScreen extends Screen {
 	protected static final int MAX_SLOTS_COUNT_FOR_SPACING = 25;
 
 	protected static final int OFFHAND_SLOT_ID = 40;
+	protected static final int OFFHAND_MENU_SLOT_ID = 45; // Offhand slot id in the player's inventory menu
 
 	protected static final float SLOT_BORDER_SCALE_FACTOR = 1.2f;
 	protected static final int SLOT_OUTER_BORDER_COLOR = 0xFFA0A0A0;
@@ -419,17 +420,27 @@ public class MenuScreen extends Screen {
 			int renderX = x - 8;
 			int renderY = y - 8;
 
-			float scale = isSelected ? BASE_ITEM_SCALE_FACTOR * SELECTED_ITEM_SCALE_FACTOR : BASE_ITEM_SCALE_FACTOR * NOT_SELECTED_ITEM_SCALE_FACTOR;
+			boolean showSlots = FileConfigHandler.CONFIG_INSTANCE.showSlotBackground;
+			float baseScale = BASE_ITEM_SCALE_FACTOR * NOT_SELECTED_ITEM_SCALE_FACTOR;
+
+			// With slots on, the highlighted frame marks the selection, so the item keeps its size and stays inside it
+			float scale = isSelected && !showSlots ? BASE_ITEM_SCALE_FACTOR * SELECTED_ITEM_SCALE_FACTOR : baseScale;
+
+			if (showSlots) {
+				// Drawn in its own matrix so every frame has the same size
+				context.pushMatrix();
+				context.translate(renderX + 8, renderY + 8, 0);
+				context.scaleMatrix(baseScale, baseScale, 1);
+				context.translate(-8, -8, 0);
+				renderSlotBorder(context, isSelected);
+				context.popMatrix();
+			}
 
 			context.pushMatrix();
 
 			context.translate(renderX + 8, renderY + 8, 0);
 			context.scaleMatrix(scale, scale, 1);
 			context.translate(-8, -8, 0);
-
-			if (FileConfigHandler.CONFIG_INSTANCE.showSlotBackground) {
-				renderSlotBorder(context, isSelected);
-			}
 
 			context.renderItem(stack, 0, 0);
 			context.renderItemDecoration(textRenderer, stack, 0, 0);
@@ -560,31 +571,68 @@ public class MenuScreen extends Screen {
 		}
 	}
 
-	// Moves the offhand item into the first empty slot, in the configured priority order.
-	// Returns false (and leaves the item in place) when the offhand is empty or there is no free slot.
+	// Moves the offhand item back into the inventory: first onto matching partial stacks, then into an empty slot,
+	// each in the configured priority order. Returns false (and leaves the item in place) when the offhand is empty
+	// or the whole stack does not fit.
 	private boolean unequipOffhand() {
 		if (client == null || client.player == null || client.getConnection() == null) return false;
-		if (client.player.getOffhandItem().isEmpty()) return false;
+
+		ItemStack offhand = client.player.getOffhandItem();
+		if (offhand.isEmpty()) return false;
 
 		Inventory inventory = client.player.getInventory();
-		boolean hotbarFirst = FileConfigHandler.CONFIG_INSTANCE.getUnequipPriority() == UnequipPriority.HOTBAR_FIRST;
+		List<Integer> order = getUnequipSlotOrder();
 
-		int targetSlot = hotbarFirst ? findEmptySlot(inventory, 0, 9) : findEmptySlot(inventory, 9, 36);
-		if (targetSlot == -1) {
-			targetSlot = hotbarFirst ? findEmptySlot(inventory, 9, 36) : findEmptySlot(inventory, 0, 9);
+		List<Integer> partialSlots = new ArrayList<>();
+		int partialSpace = 0;
+		int emptySlot = -1;
+
+		for (int slot : order) {
+			ItemStack stack = inventory.getItem(slot);
+			if (stack.isEmpty()) {
+				if (emptySlot == -1) emptySlot = slot;
+			} else if (MenuUtils.canStack(stack, offhand) && stack.getCount() < stack.getMaxStackSize()) {
+				partialSlots.add(slot);
+				partialSpace += stack.getMaxStackSize() - stack.getCount();
+			}
 		}
-		if (targetSlot == -1) return false;
 
-		// Swapping the offhand with an empty slot moves the item there
-		handleOffhandSelection(targetSlot);
+		boolean fitsIntoPartials = partialSpace >= offhand.getCount();
+		if (!fitsIntoPartials && emptySlot == -1) return false;
+
+		if (partialSlots.isEmpty()) {
+			// Swapping the offhand with an empty slot moves the item there
+			handleOffhandSelection(emptySlot);
+			return true;
+		}
+
+		// Pick the stack up, drop it onto each partial stack until it is used up, then put the rest into the empty slot
+		ClientPlayerUtils.handleMouseClickPickup(client, OFFHAND_MENU_SLOT_ID);
+		for (int slot : partialSlots) {
+			if (client.player.inventoryMenu.getCarried().isEmpty()) break;
+			ClientPlayerUtils.handleMouseClickPickup(client, toMenuSlotId(slot));
+		}
+		if (!client.player.inventoryMenu.getCarried().isEmpty()) {
+			// Something went out of sync: put whatever is left back into the offhand rather than leave it on the cursor
+			ClientPlayerUtils.handleMouseClickPickup(client, emptySlot != -1 ? toMenuSlotId(emptySlot) : OFFHAND_MENU_SLOT_ID);
+		}
 		return true;
 	}
 
-	private static int findEmptySlot(Inventory inventory, int from, int to) {
-		for (int i = from; i < to; i++) {
-			if (inventory.getItem(i).isEmpty()) return i;
+	// Inventory indices in the order an unequipped item should go to
+	private List<Integer> getUnequipSlotOrder() {
+		boolean hotbarFirst = FileConfigHandler.CONFIG_INSTANCE.getUnequipPriority() == UnequipPriority.HOTBAR_FIRST;
+		List<Integer> order = new ArrayList<>(36);
+		int[][] ranges = hotbarFirst ? new int[][]{{0, 9}, {9, 36}} : new int[][]{{9, 36}, {0, 9}};
+		for (int[] range : ranges) {
+			for (int i = range[0]; i < range[1]; i++) order.add(i);
 		}
-		return -1;
+		return order;
+	}
+
+	// Player inventory menu ids: main inventory 9-35 keeps its index, hotbar 0-8 sits at 36-44
+	private static int toMenuSlotId(int inventorySlot) {
+		return inventorySlot < 9 ? inventorySlot + 36 : inventorySlot;
 	}
 
 	// Middle click (the Pick Block key) on a hovered item toggles whether it counts as a consumable
