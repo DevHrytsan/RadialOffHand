@@ -9,17 +9,14 @@ pluginManagement {
 		maven("https://maven.kikugie.dev/releases") { name = "KikuGie Releases" }
 		maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
 		maven("https://maven.terraformersmc.com/") { name = "TerraformersMC" }
-		exclusiveContent {
-			forRepository { maven("https://api.modrinth.com/maven") { name = "Modrinth" } }
-			filter { includeGroup("maven.modrinth") }
-		}
 	}
 	includeBuild("build-logic")
 }
 
 plugins {
 	id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-	id("dev.kikugie.stonecutter") version "0.8"
+	id("dev.kikugie.stonecutter") version "0.9.8"
+	id("dev.kikugie.loom-back-compat") version "0.4.1"
 }
 
 stonecutter {
@@ -31,7 +28,11 @@ stonecutter {
 		match("1.21.1", "fabric", "neoforge")
 		match("1.21.10", "fabric", "neoforge")
 		match("1.21.11", "fabric", "neoforge")
+		match("26.1.2", "fabric", "neoforge")
+		match("26.2", "fabric", "neoforge")
+		match("26.3", "fabric", "neoforge")
 
 		vcsVersion = "1.21.10-fabric"
 	}
 }
+

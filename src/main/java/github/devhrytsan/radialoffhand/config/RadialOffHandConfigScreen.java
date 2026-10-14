@@ -73,6 +73,56 @@ public class RadialOffHandConfigScreen {
 				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.usePrioritySort = newValue)
 				.build();
 
+		var excludeHotbarToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.excludeHotbar"), FileConfigHandler.CONFIG_INSTANCE.excludeHotbar)
+				.setDefaultValue(false)
+				.setTooltip(Component.translatable("config.radialoffhand.option.excludeHotbar.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.excludeHotbar = newValue)
+				.build();
+		var onlyShowConsumablesToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.onlyShowConsumables"), FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables)
+				.setDefaultValue(false)
+				.setTooltip(Component.translatable("config.radialoffhand.option.onlyShowConsumables.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables = newValue)
+				.build();
+
+		 var showConsumablesFromHotbarToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.showConsumablesFromHotbar"), FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar)
+				.setDefaultValue(true)
+				.setTooltip(Component.translatable("config.radialoffhand.option.showConsumablesFromHotbar.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar = newValue)
+				 .setRequirement(() -> excludeHotbarToggle.getValue() == true)
+				 .build();
+
+		var showMenuBackgroundEffect = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.useMenuBackgroundEffects"), FileConfigHandler.CONFIG_INSTANCE.useMenuBackgroundEffects)
+				.setDefaultValue(true)
+				.setTooltip(Component.translatable("config.radialoffhand.option.useMenuBackgroundEffects.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.useMenuBackgroundEffects = newValue)
+				.build();
+
+		var showSlotBackgroundToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.showSlotBackground"), FileConfigHandler.CONFIG_INSTANCE.showSlotBackground)
+				.setDefaultValue(false)
+				.setTooltip(Component.translatable("config.radialoffhand.option.showSlotBackground.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.showSlotBackground = newValue)
+				.build();
+
+		var rightClickUnequipToggle = entryBuilder.startBooleanToggle(Component.translatable("config.radialoffhand.option.useRightClickUnequip"), FileConfigHandler.CONFIG_INSTANCE.useRightClickUnequip)
+				.setDefaultValue(true)
+				.setTooltip(Component.translatable("config.radialoffhand.option.useRightClickUnequip.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.useRightClickUnequip = newValue)
+				.build();
+
+		var unequipPrioritySelector = entryBuilder.startEnumSelector(Component.translatable("config.radialoffhand.option.unequipPriority"), UnequipPriority.class, FileConfigHandler.CONFIG_INSTANCE.getUnequipPriority())
+				.setDefaultValue(UnequipPriority.INVENTORY_FIRST)
+				.setEnumNameProvider(value -> Component.translatable("config.radialoffhand.option.unequipPriority." + value.name().toLowerCase()))
+				.setTooltip(Component.translatable("config.radialoffhand.option.unequipPriority.tooltip"))
+				.setSaveConsumer(newValue -> FileConfigHandler.CONFIG_INSTANCE.unequipPriority = newValue)
+				.setRequirement(() -> rightClickUnequipToggle.getValue() == true)
+				.build();
+
+		var consumablesButton = new ConsumablesButtonEntry(
+				Component.translatable("config.radialoffhand.option.editConsumables"),
+				Component.translatable("config.radialoffhand.option.editConsumables.button"));
+		// The list only changes anything while one of the consumable filters is on
+		consumablesButton.setRequirement(() -> onlyShowConsumablesToggle.getValue() == true || excludeHotbarToggle.getValue() == true);
+
 		general.addEntry(modEnableToggle);
 		general.addEntry(scaleFactorSlider);
 		general.addEntry(toggleBooleanToggle);
@@ -81,6 +131,14 @@ public class RadialOffHandConfigScreen {
 		general.addEntry(useCenterPreviewDescriptionToggle);
 		general.addEntry(allowMovementToggle);
 		general.addEntry(prioritySortToggle);
+		general.addEntry(excludeHotbarToggle);
+		general.addEntry(onlyShowConsumablesToggle);
+		general.addEntry(consumablesButton);
+		general.addEntry(showConsumablesFromHotbarToggle);
+		general.addEntry(showMenuBackgroundEffect);
+		general.addEntry(showSlotBackgroundToggle);
+		general.addEntry(rightClickUnequipToggle);
+		general.addEntry(unequipPrioritySelector);
 
         return builder.build();
     }

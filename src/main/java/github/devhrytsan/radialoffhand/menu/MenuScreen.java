@@ -1,10 +1,13 @@
 package github.devhrytsan.radialoffhand.menu;
 
+import github.devhrytsan.radialoffhand.compatibility.GuiGraphicsLayer;
+import github.devhrytsan.radialoffhand.RadialOffHandMod;
 import github.devhrytsan.radialoffhand.config.FileConfigHandler;
+import github.devhrytsan.radialoffhand.config.UnequipPriority;
 import github.devhrytsan.radialoffhand.utils.ClientPlayerUtils;
-import github.devhrytsan.radialoffhand.utils.GuiGraphicsUtils;
 import github.devhrytsan.radialoffhand.utils.KeyInputUtils;
 import github.devhrytsan.radialoffhand.utils.MathUtils;
+import github.devhrytsan.radialoffhand.utils.MenuUtils;
 
 //? if >=1.20.5 {
 //? }
@@ -16,9 +19,13 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 *///? }
 
-import github.devhrytsan.radialoffhand.utils.MenuUtils;
-import net.minecraft.client.Minecraft;
+//? if >= 26.1 {
+/*import net.minecraft.client.gui.GuiGraphicsExtractor;
+ *///? } else {
 import net.minecraft.client.gui.GuiGraphics;
+//? }
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,11 +53,19 @@ public class MenuScreen extends Screen {
 	protected static final float MIN_RADIUS_IGNORE_MOUSE_FACTOR = 0.2f;
 	protected static final float MAX_RADIUS_IGNORE_MOUSE_FACTOR = 6f;
 
-	protected static final int MAX_SLOTS_COUNT = 35;
+	protected static final int MAX_SLOTS_COUNT = 36;
 	protected static final int MIN_SLOTS_COUNT_FOR_SPACING = 14;
 	protected static final int MAX_SLOTS_COUNT_FOR_SPACING = 25;
 
 	protected static final int OFFHAND_SLOT_ID = 40;
+	protected static final int OFFHAND_MENU_SLOT_ID = 45; // Offhand slot id in the player's inventory menu
+
+	protected static final float SLOT_BORDER_SCALE_FACTOR = 1.2f;
+	protected static final int SLOT_OUTER_BORDER_COLOR = 0xFFA0A0A0;
+	protected static final int SLOT_OUTER_BORDER_SELECTED_COLOR = 0xFFFFFFFF;
+	protected static final int SLOT_INNER_BORDER_COLOR = 0xFF000000;
+	protected static final int SLOT_FILL_COLOR = 0x66000000; // Black at 40% opacity
+	protected static final int SLOT_FILL_SELECTED_COLOR = 0x50FFFFFF; // White at 30% opacity
 
 	private static float[] SPACING_PUSH = {0.0f, 8.0f, 5.0f, 4.0f, 2.0f, 1.0f};
 
@@ -58,17 +73,23 @@ public class MenuScreen extends Screen {
 	private int totalItemsToDraw = 0;
 
 	private boolean wasLeftMousePressed = false;
+	private boolean wasRightMousePressed = false;
+	private boolean wasMiddleMousePressed = false;
+
+	// Inventory slot under the mouse in the last rendered frame, or -1
+	private int hoveredSlot = -1;
 
 	private final Minecraft client = Minecraft.getInstance();
-
-
 	public static final MenuScreen INSTANCE = new MenuScreen();
+
+	private GuiGraphicsLayer guiContextLayer;
 
 	public boolean active = false;
 
 	public MenuScreen() {
 		super(Component.translatable("main.radialoffhand.title"));
 		slotsToDraw = new ArrayList<>(MAX_SLOTS_COUNT);
+		guiContextLayer = new GuiGraphicsLayer();
 	}
 
 	@Override
@@ -80,21 +101,54 @@ public class MenuScreen extends Screen {
 	public void tick() {
 		super.tick();
 
-	 if(FileConfigHandler.CONFIG_INSTANCE.toggleMode){
-		 handleMouseClick();
-	 }
+		if (FileConfigHandler.CONFIG_INSTANCE.toggleMode) {
+			handleMouseClick();
+		}
+
+		if (FileConfigHandler.CONFIG_INSTANCE.useRightClickUnequip) {
+			handleRightMouseClick();
+		}
+
+		handleMiddleMouseClick();
 	}
 
+	//? if >= 26.1 {
+	/*@Override
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(context, mouseX, mouseY, delta);
+
+		guiContextLayer.setContext(context);
+		handleRender(guiContextLayer, mouseX, mouseY, delta);
+	}
+	@Override
+	public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+
+	}
+	*///? } else {
 	@Override
 	public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
 
+		guiContextLayer.setContext(context);
+		handleRender(guiContextLayer, mouseX, mouseY, delta);
+	}
+
+	//? if >=1.21.1 {
+	@Override
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+
+	}
+	//? }
+
+	//? }
+
+	private void handleRender(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
+
 		//boolean isEnabled = FileConfigHandler.CONFIG_INSTANCE.modEnabled;
-		boolean hasScreen = client.screen != null;
+		boolean hasScreen = ClientPlayerUtils.getScreen(client) != null;
 		boolean isPaused = !client.isPaused();
 
 		if (hasScreen && isPaused) {
-			super.render(context, mouseX, mouseY, delta);
 
 			prepareSlots(context, mouseX, mouseY, delta);
 			renderBackgrounds(context, mouseX, mouseY, delta);
@@ -121,28 +175,33 @@ public class MenuScreen extends Screen {
 
 	public void activate() {
 
-		if (client.screen == null) {
+		if (ClientPlayerUtils.getScreen(client) == null) {
 			if (client != null && client.player != null) {
 				int currentSlot = ClientPlayerUtils.getPlayerSelectedSlot(client.player);
 			}
 
+			// A button still held from before opening (e.g. mining) must not count as a click
+			this.wasLeftMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyAttack, client.getWindow());
+			this.wasRightMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyUse, client.getWindow());
+			this.wasMiddleMousePressed = KeyInputUtils.isHardwareKeyPressed(client.options.keyPickItem, client.getWindow());
+			this.hoveredSlot = -1;
 			// So basically it works it only allows when the player is playing the game and not looking at another menu.
 			active = true;
-			client.setScreen(INSTANCE);
+			ClientPlayerUtils.setScreen(client, INSTANCE);
 		}
 	}
 
 	public void deactivate(int mouseX, int mouseY) {
 		active = false;
 
-		if (client.screen == INSTANCE) {
-			client.setScreen(null);
+		if (ClientPlayerUtils.getScreen(client) == INSTANCE) {
+			ClientPlayerUtils.setScreen(client, null);
 		}
 	}
 
-	public void selectAndDeactivate(){
-		int scaledMouseX = (int)ClientPlayerUtils.getScaledMouseX(client);
-		int scaledMouseY = (int)ClientPlayerUtils.getScaledMouseY(client);
+	public void selectAndDeactivate() {
+		int scaledMouseX = (int) ClientPlayerUtils.getScaledMouseX(client);
+		int scaledMouseY = (int) ClientPlayerUtils.getScaledMouseY(client);
 
 		MenuScreen.INSTANCE.selectItem(scaledMouseX, scaledMouseY, 0);
 		MenuScreen.INSTANCE.deactivate(scaledMouseX, scaledMouseY);
@@ -177,7 +236,7 @@ public class MenuScreen extends Screen {
 
 			float distanceFromCenter = MathUtils.calculateDistanceBetweenPoints(centerX, centerY, mouseX, mouseY);
 
-			boolean mouseIn = (MathUtils.betweenTwoValues(distanceFromCenter, minRadiusIgnore, maxRadiusIgnore)) ? MathUtils.isAngleBetween(adjustedMouseAngle, checkStart, checkEnd) : false;
+			boolean mouseIn = MathUtils.betweenTwoValues(distanceFromCenter, minRadiusIgnore, maxRadiusIgnore) && MathUtils.isAngleBetween(adjustedMouseAngle, checkStart, checkEnd);
 
 			if (mouseIn) {
 				handleOffhandSelection(realSlotIndex);
@@ -187,16 +246,47 @@ public class MenuScreen extends Screen {
 		}
 	}
 
-	private void prepareSlots(GuiGraphics context, int mouseX, int mouseY, float delta) {
+	private void prepareSlots(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
 		Player player = this.client.player;
 		Inventory inventory = player.getInventory();
 
 		slotsToDraw.clear();
 
+		// Holding the key temporarily shows every item, so filtered-out items can be marked as consumables
+		boolean showAllItems = RadialOffHandMod.SHOW_ALL_ITEMS_KEY != null
+				&& KeyInputUtils.isHardwareKeyPressed(RadialOffHandMod.SHOW_ALL_ITEMS_KEY, client.getWindow());
+
 		for (int i = 0; i < MAX_SLOTS_COUNT; i++) {
-			if (!FileConfigHandler.CONFIG_INSTANCE.hideEmptySlots || !inventory.getItem(i).isEmpty()) {
-				slotsToDraw.add(i);
+
+			boolean isHotbarSlot = Inventory.isHotbarSlot(i);
+
+			ItemStack stack = inventory.getItem(i);
+
+			if (FileConfigHandler.CONFIG_INSTANCE.hideEmptySlots && stack.isEmpty()) {
+				continue;
 			}
+
+			if (showAllItems) {
+				slotsToDraw.add(i);
+				continue;
+			}
+
+			if (isHotbarSlot && FileConfigHandler.CONFIG_INSTANCE.excludeHotbar) {
+				boolean isConsumable = !stack.isEmpty() && MenuUtils.isConsumable(stack);
+
+				// An excluded hotbar still shows its consumables when that option is on
+				if (!(FileConfigHandler.CONFIG_INSTANCE.showConsumablesFromHotbar && isConsumable)) {
+					continue;
+				}
+			}
+
+			if (FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables && !stack.isEmpty()) {
+				if (!MenuUtils.isConsumable(stack)) {
+					continue;
+				}
+			}
+
+			slotsToDraw.add(i);
 		}
 
 		if (FileConfigHandler.CONFIG_INSTANCE.usePrioritySort) {
@@ -218,25 +308,35 @@ public class MenuScreen extends Screen {
 		totalItemsToDraw = slotsToDraw.size();
 	}
 
-	private void renderBackgrounds(GuiGraphics context, int mouseX, int mouseY, float delta) {
+	private void renderBackgrounds(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
+
+		if (!FileConfigHandler.CONFIG_INSTANCE.useMenuBackgroundEffects) {
+			return;
+		}
+
 		//? if <1.21.1 {
-
-
-			/*int color = 0x80000000;
-
-			GuiGraphicsUtils.pushMatrix(context);
-	        context.fill(0, 0, width, height, color);
-			GuiGraphicsUtils.popMatrix(context);
-
-		*///? }
+        /*
+        int color = 0x80000000;
+        context.pushMatrix();
+        context.fill(0, 0, this.width, this.height, color);
+        context.popMatrix();
+        */
+		//? } else {
+		//? if >= 26.1 {
+        /*
+        super.extractBackground(context.unwrap(), mouseX, mouseY, delta);
+        */
+		//? } else {
+		super.renderBackground(context.unwrap(), mouseX, mouseY, delta);
+		//? }
+		//? }
 	}
 
-	private void renderItems(GuiGraphics context, int mouseX, int mouseY, float delta) {
+	private void renderItems(GuiGraphicsLayer context, int mouseX, int mouseY, float delta) {
 		var clientWindow = client.getWindow();
 		Player player = this.client.player;
 		Inventory inventory = player.getInventory();
 		var textRenderer = client.font;
-
 		int centerX = clientWindow.getGuiScaledWidth() / 2;
 		int centerY = clientWindow.getGuiScaledHeight() / 2;
 
@@ -268,6 +368,8 @@ public class MenuScreen extends Screen {
 			}
 		}
 
+		hoveredSlot = selectedIndex != -1 ? slotsToDraw.get(selectedIndex) : -1;
+
 		float radialPopOut = 8f;
 
 		float settingsScale = 3.0f / FileConfigHandler.CONFIG_INSTANCE.scaleFactor;
@@ -284,7 +386,7 @@ public class MenuScreen extends Screen {
 				if (isSelected) {
 					currentRadius += radialPopOut;
 				} else {
-					if(MIN_SLOTS_COUNT_FOR_SPACING < totalItemsToDraw) {
+					if (MIN_SLOTS_COUNT_FOR_SPACING < totalItemsToDraw) {
 						// Creates a "gap" for the selected item.
 						int diff = i - selectedIndex;
 						int halfTotal = totalItemsToDraw / 2;
@@ -317,17 +419,33 @@ public class MenuScreen extends Screen {
 			int renderX = x - 8;
 			int renderY = y - 8;
 
-			float scale = isSelected ? BASE_ITEM_SCALE_FACTOR * SELECTED_ITEM_SCALE_FACTOR : BASE_ITEM_SCALE_FACTOR * NOT_SELECTED_ITEM_SCALE_FACTOR;
+			boolean showSlots = FileConfigHandler.CONFIG_INSTANCE.showSlotBackground;
+			float baseScale = BASE_ITEM_SCALE_FACTOR * NOT_SELECTED_ITEM_SCALE_FACTOR;
 
-			GuiGraphicsUtils.pushMatrix(context);
-			GuiGraphicsUtils.translateMatrix(context, renderX + 8, renderY + 8, 0);
-			GuiGraphicsUtils.scaleMatrix(context, scale, scale, 1);
-			GuiGraphicsUtils.translateMatrix(context, -8, -8, 0);
+			// With slots on, the highlighted frame marks the selection, so the item keeps its size and stays inside it
+			float scale = isSelected && !showSlots ? BASE_ITEM_SCALE_FACTOR * SELECTED_ITEM_SCALE_FACTOR : baseScale;
 
-			GuiGraphicsUtils.renderItem(context, stack, 0, 0);
-			GuiGraphicsUtils.renderItemDecoration(context, textRenderer, stack, 0, 0);
+			if (showSlots) {
+				// Drawn in its own matrix so every frame has the same size
+				context.pushMatrix();
+				context.translate(renderX + 8, renderY + 8, 0);
+				context.scaleMatrix(baseScale, baseScale, 1);
+				context.translate(-8, -8, 0);
+				renderSlotBorder(context, isSelected);
+				context.popMatrix();
+			}
 
-			GuiGraphicsUtils.popMatrix(context);
+			context.pushMatrix();
+
+			context.translate(renderX + 8, renderY + 8, 0);
+			context.scaleMatrix(scale, scale, 1);
+			context.translate(-8, -8, 0);
+
+			context.renderItem(stack, 0, 0);
+			context.renderItemDecoration(textRenderer, stack, 0, 0);
+
+			context.popMatrix();
+
 		}
 
 		if (FileConfigHandler.CONFIG_INSTANCE.useCenterItemPreview && !selectedStack.isEmpty()) {
@@ -335,7 +453,29 @@ public class MenuScreen extends Screen {
 		}
 	}
 
-	private void renderCenterItem(GuiGraphics context, ItemStack itemStack) {
+	// Draws an 18x18 slot frame (light outer border, dark inner border, translucent fill),
+	// scaled around the item's center. Expects the matrix to be at the item's 16x16 origin.
+	private void renderSlotBorder(GuiGraphicsLayer context, boolean isSelected) {
+		context.pushMatrix();
+		context.translate(8, 8, 0);
+		context.scaleMatrix(SLOT_BORDER_SCALE_FACTOR, SLOT_BORDER_SCALE_FACTOR, 1);
+		context.translate(-9, -9, 0);
+
+		context.fill(2, 2, 16, 16, isSelected ? SLOT_FILL_SELECTED_COLOR : SLOT_FILL_COLOR);
+		renderFrame(context, 1, 1, 17, 17, SLOT_INNER_BORDER_COLOR);
+		renderFrame(context, 0, 0, 18, 18, isSelected ? SLOT_OUTER_BORDER_SELECTED_COLOR : SLOT_OUTER_BORDER_COLOR);
+
+		context.popMatrix();
+	}
+
+	private void renderFrame(GuiGraphicsLayer context, int minX, int minY, int maxX, int maxY, int color) {
+		context.fill(minX, minY, maxX, minY + 1, color);
+		context.fill(minX, maxY - 1, maxX, maxY, color);
+		context.fill(minX, minY + 1, minX + 1, maxY - 1, color);
+		context.fill(maxX - 1, minY + 1, maxX, maxY - 1, color);
+	}
+
+	private void renderCenterItem(GuiGraphicsLayer context, ItemStack itemStack) {
 		if (itemStack.isEmpty()) return;
 
 		boolean showDescription = FileConfigHandler.CONFIG_INSTANCE.useCenterPreviewDescription;
@@ -374,15 +514,15 @@ public class MenuScreen extends Screen {
 		// Render the item
 		float itemCenterY = startY + halfItemSize;
 
-		GuiGraphicsUtils.pushMatrix(context);
-		GuiGraphicsUtils.translateMatrix(context, centerX, itemCenterY, 0);
-		GuiGraphicsUtils.scaleMatrix(context, centerScale, centerScale, 1);
-		GuiGraphicsUtils.translateMatrix(context, -8, -8, 0);
+		context.pushMatrix();
+		context.translate(centerX, itemCenterY, 0);
+		context.scaleMatrix(centerScale, centerScale, 1);
+		context.translate(-8, -8, 0);
 
-		GuiGraphicsUtils.renderItem(context, itemStack, 0, 0);
-		GuiGraphicsUtils.renderItemDecoration(context, textRenderer, itemStack, 0, 0);
+		context.renderItem(itemStack, 0, 0);
+		context.renderItemDecoration(textRenderer, itemStack, 0, 0);
 
-		GuiGraphicsUtils.popMatrix(context);
+		context.popMatrix();
 
 		// Render name
 		String itemName = itemStack.getHoverName().getString();
@@ -391,7 +531,7 @@ public class MenuScreen extends Screen {
 		// Cast to int  so the text rendering stays pixel perfect
 		int nameY = (int) (itemCenterY + halfItemSize + 5);
 
-		GuiGraphicsUtils.drawString(context, textRenderer, itemName, centerX - (textWidth / 2), nameY, 0xFFFFFFFF, true);
+		context.drawString(textRenderer, itemName, centerX - (textWidth / 2), nameY, 0xFFFFFFFF, true);
 
 		// Render Description
 		if (showDescription && descriptionLines > 0) {
@@ -401,7 +541,7 @@ public class MenuScreen extends Screen {
 				Component line = tooltip.get(i);
 				int lineWidth = textRenderer.width(line);
 
-				GuiGraphicsUtils.drawString(context, textRenderer, line, centerX - (lineWidth / 2), currentDescriptionY, 0xFFFFFFFF, true);
+				context.drawString(textRenderer, line, centerX - (lineWidth / 2), currentDescriptionY, 0xFFFFFFFF, true);
 
 				currentDescriptionY += fontHeight + 2;
 			}
@@ -430,6 +570,104 @@ public class MenuScreen extends Screen {
 		}
 	}
 
+	// Moves the offhand item back into the inventory: first onto matching partial stacks, then into an empty slot,
+	// each in the configured priority order. Returns false (and leaves the item in place) when the offhand is empty
+	// or the whole stack does not fit.
+	private boolean unequipOffhand() {
+		if (client == null || client.player == null || client.getConnection() == null) return false;
+
+		ItemStack offhand = client.player.getOffhandItem();
+		if (offhand.isEmpty()) return false;
+
+		Inventory inventory = client.player.getInventory();
+		List<Integer> order = getUnequipSlotOrder();
+
+		List<Integer> partialSlots = new ArrayList<>();
+		int partialSpace = 0;
+		int emptySlot = -1;
+
+		for (int slot : order) {
+			ItemStack stack = inventory.getItem(slot);
+			if (stack.isEmpty()) {
+				if (emptySlot == -1) emptySlot = slot;
+			} else if (MenuUtils.canStack(stack, offhand) && stack.getCount() < stack.getMaxStackSize()) {
+				partialSlots.add(slot);
+				partialSpace += stack.getMaxStackSize() - stack.getCount();
+			}
+		}
+
+		boolean fitsIntoPartials = partialSpace >= offhand.getCount();
+		if (!fitsIntoPartials && emptySlot == -1) return false;
+
+		if (partialSlots.isEmpty()) {
+			// Swapping the offhand with an empty slot moves the item there
+			handleOffhandSelection(emptySlot);
+			return true;
+		}
+
+		// Pick the stack up, drop it onto each partial stack until it is used up, then put the rest into the empty slot
+		ClientPlayerUtils.handleMouseClickPickup(client, OFFHAND_MENU_SLOT_ID);
+		for (int slot : partialSlots) {
+			if (client.player.inventoryMenu.getCarried().isEmpty()) break;
+			ClientPlayerUtils.handleMouseClickPickup(client, toMenuSlotId(slot));
+		}
+		if (!client.player.inventoryMenu.getCarried().isEmpty()) {
+			// Something went out of sync: put whatever is left back into the offhand rather than leave it on the cursor
+			ClientPlayerUtils.handleMouseClickPickup(client, emptySlot != -1 ? toMenuSlotId(emptySlot) : OFFHAND_MENU_SLOT_ID);
+		}
+		return true;
+	}
+
+	// Inventory indices in the order an unequipped item should go to
+	private List<Integer> getUnequipSlotOrder() {
+		boolean hotbarFirst = FileConfigHandler.CONFIG_INSTANCE.getUnequipPriority() == UnequipPriority.HOTBAR_FIRST;
+		List<Integer> order = new ArrayList<>(36);
+		int[][] ranges = hotbarFirst ? new int[][]{{0, 9}, {9, 36}} : new int[][]{{9, 36}, {0, 9}};
+		for (int[] range : ranges) {
+			for (int i = range[0]; i < range[1]; i++) order.add(i);
+		}
+		return order;
+	}
+
+	// Player inventory menu ids: main inventory 9-35 keeps its index, hotbar 0-8 sits at 36-44
+	private static int toMenuSlotId(int inventorySlot) {
+		return inventorySlot < 9 ? inventorySlot + 36 : inventorySlot;
+	}
+
+	// Middle click (the Pick Block key) on a hovered item toggles whether it counts as a consumable
+	private void handleMiddleMouseClick() {
+		var keyPickItem = Minecraft.getInstance().options.keyPickItem;
+		boolean isMiddleMousePressed = KeyInputUtils.isHardwareKeyPressed(keyPickItem, client.getWindow());
+
+		// The consumable list only matters while one of the consumable filters is on
+		boolean isConsumableFilterOn = FileConfigHandler.CONFIG_INSTANCE.onlyShowConsumables || FileConfigHandler.CONFIG_INSTANCE.excludeHotbar;
+
+		if (isMiddleMousePressed && !wasMiddleMousePressed && isConsumableFilterOn && hoveredSlot != -1 && client.player != null) {
+			ItemStack stack = client.player.getInventory().getItem(hoveredSlot);
+
+			if (!stack.isEmpty()) {
+				boolean isConsumable = MenuUtils.toggleConsumable(stack);
+				String messageKey = isConsumable ? "message.radialoffhand.consumable.added" : "message.radialoffhand.consumable.removed";
+				ClientPlayerUtils.setOverlayMessage(client, Component.translatable(messageKey, stack.getHoverName()));
+			}
+		}
+
+		wasMiddleMousePressed = isMiddleMousePressed;
+	}
+
+	private void handleRightMouseClick() {
+		var keyUse = Minecraft.getInstance().options.keyUse;
+		boolean isRightMousePressed = KeyInputUtils.isHardwareKeyPressed(keyUse, client.getWindow());
+
+		if (isRightMousePressed && !wasRightMousePressed) {
+			if (unequipOffhand()) {
+				deactivate(0, 0);
+			}
+		}
+
+		wasRightMousePressed = isRightMousePressed;
+	}
+
 	private void handleMouseClick() {
 		var clientWindow = client.getWindow();
 
@@ -437,8 +675,8 @@ public class MenuScreen extends Screen {
 		boolean isLeftMousePressed = KeyInputUtils.isHardwareKeyPressed(keyAttack, clientWindow);
 
 		// This is not the best approach.
-        // It could be done using Screen events (like mousePressed, etc.),
-        // but due to differences between versions, it becomes a backward compatibility nightmare in code.
+		// It could be done using Screen events (like mousePressed, etc.),
+		// but due to differences between versions, it becomes a backward compatibility nightmare in code.
 
 		if (isLeftMousePressed && !wasLeftMousePressed) {
 			MenuScreen.INSTANCE.selectAndDeactivate();

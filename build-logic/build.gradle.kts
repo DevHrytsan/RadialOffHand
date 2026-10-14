@@ -1,5 +1,6 @@
 plugins {
 	`kotlin-dsl`
+	kotlin("plugin.serialization") version embeddedKotlinVersion
 }
 
 gradlePlugin {
@@ -8,11 +9,14 @@ gradlePlugin {
 			id = "mod-platform"
 			implementationClass = "ModPlatformPlugin"
 		}
+		register("modRoot") {
+			id = "mod-root"
+			implementationClass = "ModRootPlugin"
+		}
 	}
 }
 
 repositories {
-	mavenLocal()
 	mavenCentral()
 	gradlePluginPortal()
 	maven("https://maven.fabricmc.net/") { name = "Fabric" }
@@ -25,7 +29,11 @@ repositories {
 dependencies {
 	implementation(libs.kikugie.postprocess)
 	implementation(libs.kikugie.stonecutter)
+	implementation(libs.kikugie.loomx)
 	implementation(libs.mod.publish.plugin)
 	implementation(libs.foojay.resolver)
 	implementation(libs.fletching.table)
+	implementation(libs.vanniktech.maven.publish)
+	implementation(libs.serialization.json)
+	implementation(libs.serialization.toml)
 }

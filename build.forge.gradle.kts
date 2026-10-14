@@ -3,42 +3,53 @@ plugins {
 	id("net.neoforged.moddev.legacyforge")
 }
 
+stonecutter {
+	replacements.string(current.parsed >= "1.21.11") {
+		replace("ResourceLocation", "Identifier")
+		replace("location()", "identifier()")
+	}
+}
+
 platform {
 	loader = "forge"
 	dependencies {
 		required("minecraft") {
-			forgeVersionRange = "[${prop("deps.minecraft")}]"
+			forgeLikeVersionRange = prop("deps.minecraft")
 		}
 		required("forge") {
-			forgeVersionRange = "[1,)"
+			forgeLikeVersionRange.set("[${prop("deps.forge")},)")
 		}
-		required(modid = "cloth_config") {
+		required("cloth_config") {
 			slug("cloth-config")
-			forgeVersionRange = "[${prop("deps.cloth_config")},)"
+			forgeLikeVersionRange = "[${prop("deps.cloth-config")},)"
 		}
 	}
 }
 
 legacyForge {
-	version = "${property("deps.minecraft")}-${property("deps.forge")}"
+	version = "${prop("deps.minecraft")}-${prop("deps.forge")}"
 
 	validateAccessTransformers = true
 
 	accessTransformers.from(
-		rootProject.file("src/main/resources/aw/${stonecutter.current.version}.cfg")
+		rootProject.file("src/main/resources/aw/${sc.current.version}.cfg")
 	)
 
+	val devJvmArgs = propsList("mod", "dev_jvm_args") +
+		propsList("mod", "dev_jvm_args_mixin_debug")
 	runs {
 		register("client") {
 			client()
 			gameDirectory = file("run/")
-			ideName = "Forge Client (${stonecutter.active?.version})"
+			ideName = "Forge Client (${sc.current.version})"
 			programArgument("--username=Dev")
+			jvmArguments.addAll(devJvmArgs)
 		}
 		register("server") {
 			server()
 			gameDirectory = file("run/")
-			ideName = "Forge Server (${stonecutter.active?.version})"
+			ideName = "Forge Server (${sc.current.version})"
+			jvmArguments.addAll(devJvmArgs)
 		}
 	}
 
@@ -57,10 +68,7 @@ mixin {
 
 repositories {
 	mavenCentral()
-
 	maven("https://maven.shedaniel.me/")
-	maven("https://files.minecraftforge.net/maven/")
-
 	strictMaven("https://maven.terraformersmc.com/", "com.terraformersmc") { name = "TerraformersMC" }
 	strictMaven("https://api.modrinth.com/maven", "maven.modrinth") { name = "Modrinth" }
 }
@@ -68,24 +76,20 @@ repositories {
 dependencies {
 	annotationProcessor("org.spongepowered:mixin:${libs.versions.mixin.get()}:processor")
 
-	implementation(libs.moulberry.mixinconstraints)
-	jarJar(libs.moulberry.mixinconstraints)
+	// implementation(libs.moulberry.mixinconstraints)
+	// jarJar(libs.moulberry.mixinconstraints)
 
-	modImplementation("me.shedaniel.cloth:cloth-config-forge:${prop("deps.cloth_config")}")
+	modImplementation("me.shedaniel.cloth:cloth-config-forge:${prop("deps.cloth-config")}")
 }
 
 sourceSets {
 	main {
 		resources.srcDir(
-			"${rootDir}/versions/datagen/${stonecutter.current.version.split("-")[0]}/src/main/generated"
+			"${rootDir}/versions/datagen/${sc.current.version}/src/main/generated"
 		)
 	}
 }
 
 tasks.named("createMinecraftArtifacts") {
 	dependsOn(tasks.named("stonecutterGenerate"))
-}
-
-stonecutter {
-
 }
